@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "node16", // Use ESNext module system (ES modules)
+    "target": "ESNext", // Compile to the latest ECMAScript version
+    "moduleResolution": "nodenext", // Resolve modules using Node.js style
+    "esModuleInterop": true, // Enables interop between ES modules and CommonJS
+    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export
+    "strict": true, // Enables strict type-checking
+    "skipLibCheck": true, // Skip type-checking declaration files (faster builds)
+    "outDir": "./dist", // Specifies output directory for compiled files
+    "allowImportingTsExtensions": true, // required due to using ESM
+    "emitDeclarationOnly": true, // required for allowImportingTsExtensions
+    "declaration": true, // required for emitDeclarationOnly
+  },
+  "include": ["src/**/*", "config.ts"]
+}
