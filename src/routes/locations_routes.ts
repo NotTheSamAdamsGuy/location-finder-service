@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { nanoid } from "nanoid";
+import { body, query, matchedData, validationResult } from "express-validator";
 
 import * as service from "../services/locations_service.ts";
 import * as geolocationService from "../services/geolocation_service.ts";
 import { Location } from "../types.ts";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get("/", async (req, res, next) => {
   try {
@@ -15,6 +16,42 @@ router.get("/", async (req, res, next) => {
     return next(err);
   }
 });
+
+// GET /locations/nearby
+router.get(
+  "/nearby",
+  query("latitude").notEmpty(),
+  query("longitude").notEmpty(),
+  query("radius").notEmpty(),
+  query("unitOfDistance").notEmpty(),
+  async (req, res, next) => {
+    const result = validationResult(req);
+
+    if (result.isEmpty()) {
+      const data = matchedData(req);
+      const latitude = parseFloat(data.latitude as string);
+      const longitude = parseFloat(data.longitude as string);
+      const radius = parseFloat(data.radius as string);
+      const unitOfDistance: any = data.unitOfDistance;
+      const sort: any = data.sort;
+
+      try {
+        const locations = await service.getNearbyLocations(
+          latitude,
+          longitude,
+          radius,
+          unitOfDistance,
+          sort
+        );
+        return res.status(200).json(locations);
+      } catch (err) {
+        return next(err);
+      }
+    }
+
+    return res.status(400).json({ errors: result.array() });
+  }
+);
 
 // GET /locations/abc123
 router.get("/:locationId", async (req, res, next) => {
@@ -26,49 +63,49 @@ router.get("/:locationId", async (req, res, next) => {
   }
 });
 
-// POST /locations/{location}
-router.post("/", async (req, res, next) => {
-  try {
-    const { name, streetAddress, city, state, zip, description } = { ...req.body };
-    const hasRequiredFields = {
-      name: name ? true : false,
-      streetAddress: streetAddress ? true : false,
-      city: city ? true : false,
-      state: state ? true : false,
-      zip: zip ? true : false,
-      description: description ? true : false
-    };
+// POST /locations
+router.post(
+  "/",
+  body("name").notEmpty(),
+  body("streetAddress").notEmpty(),
+  body("city").notEmpty(),
+  body("state").notEmpty(),
+  body("zip").notEmpty(),
+  body("description").optional(),
+  async (req, res, next) => {
+    const result = validationResult(req);
 
-    const missingFields = Object.entries(hasRequiredFields).filter(([, value]) => value === false);
-    const missingFieldNames = missingFields.map(([key]) => key);
+    if (result.isEmpty()) {
+      const data = matchedData(req);
+      const { name, streetAddress, city, state, zip, description } = data;
 
-    if (Object.values(hasRequiredFields).indexOf(false) > -1) {
-      throw new Error (`One or more required fields are missing values: ${missingFieldNames.join(", ")}`);
+      try {
+        const coordinates = await geolocationService.getCoordinates({
+          streetAddress: streetAddress,
+          city: city,
+          state: state,
+          zip: zip,
+        });
+
+        const location: Location = {
+          id: nanoid(),
+          name: name,
+          streetAddress: streetAddress,
+          city: city,
+          state: state,
+          zip: zip,
+          coordinates: coordinates,
+          description: description,
+        };
+        const locationKey = await service.addLocation(location);
+        return res.status(200).json(locationKey);
+      } catch (err) {
+        return next(err);
+      }
     }
 
-    // get the coordinates for the location from GeolocationService
-    const coordinates = await geolocationService.getCoordinates({
-      streetAddress: streetAddress,
-      city: city,
-      state: state,
-      zip: zip,
-    });
-
-    const location: Location = {
-      id: nanoid(),
-      name: name,
-      streetAddress: streetAddress,
-      city: city,
-      state: state,
-      zip: zip,
-      coordinates: coordinates,
-      description: description,
-    };
-    const locationKey = await service.addLocation(location);
-    return res.status(200).json(locationKey);
-  } catch (err) {
-    return next(err);
+    return res.status(400).json({ errors: result.array() });
   }
-});
+);
 
 export default router;

@@ -90,7 +90,7 @@ export const findById = async (id: string): Promise<Location | null> => {
 
 /**
  * Get all the location objects.
- * 
+ *
  * @returns {Promise<Location[]>} - a Promise, resolving to an array of Location objects.
  */
 export const findAll = async (): Promise<Location[]> => {
@@ -111,4 +111,40 @@ export const findAll = async (): Promise<Location[]> => {
   });
 
   return locations;
-}
+};
+
+export const findNearbyByGeoRadius = async (
+  lat: number,
+  lng: number,
+  radius: number,
+  unitOfDistance: "m" | "km" | "ft" | "mi",
+  sort: "ASC" | "DESC" = "ASC"
+) => {
+  const client = await redis.getClient();
+  const locationGeoKey = keyGenerator.getLocationGeoKey();
+
+  const locationIds = await client.GEORADIUS(
+    locationGeoKey,
+    { latitude: lat, longitude: lng },
+    radius,
+    unitOfDistance,
+    {
+      SORT: sort
+    }
+  );
+
+  const pipeline = client.multi();
+
+  for (const locationId of locationIds) {
+    const locationHashKey = keyGenerator.getLocationHashKey(locationId);
+    pipeline.HGETALL(locationHashKey);
+  }
+
+  const locationHashes = await pipeline.execAsPipeline();
+
+  const locations: Location[] = locationHashes.map((locationHash) => {
+    return remap(locationHash);
+  });
+
+  return locations;
+};

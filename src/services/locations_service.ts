@@ -15,6 +15,24 @@ export const getLocation = async (locationId: string) => locationDao.findById(lo
 export const getAllLocations = async () => locationDao.findAll();
 
 /**
+ * Get locations nearby the given coordinates.
+ * 
+ * @param {number} lat - latitude
+ * @param {number} lng - longitude
+ * @param {number} radius - the search readius
+ * @param {string} unitOfDistance - unit of distance for the search ('m', 'km', 'ft', or 'mi')
+ * @param {string} sort - sort order ('ASC' or 'DESC')
+ * @returns 
+ */
+export const getNearbyLocations = async (
+  lat: number,
+  lng: number,
+  radius: number,
+  unitOfDistance: "m" | "km" | "ft" | "mi",
+  sort: "ASC" | "DESC" = "ASC"
+) => locationDao.findNearbyByGeoRadius(lat, lng, radius, unitOfDistance, sort);
+
+/**
  * Add a new Location into the database.
  * @param {Location} location - a Location object
  * @returns a Promise, resolving to a string containing the database key of the newly-created Location.
