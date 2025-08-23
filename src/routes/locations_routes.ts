@@ -16,7 +16,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// GET /locations/999
+// GET /locations/abc123
 router.get("/:locationId", async (req, res, next) => {
   try {
     const location = await service.getLocation(req.params.locationId);
@@ -46,19 +46,13 @@ router.post("/", async (req, res, next) => {
       throw new Error (`One or more required fields are missing values: ${missingFieldNames.join(", ")}`);
     }
 
-    let coordinates = {
-      lat: 0,
-      lng: 0
-    }
-
-    try {
-      const geolocation = await geolocationService.getGeolocation(`${streetAddress} ${city} ${state}, ${zip}`);
-      coordinates["lat"] = geolocation.latitude;
-      coordinates["lng"] = geolocation.longitude;
-    } catch (err) {
-      console.log(err);
-      throw new Error("Unable to get coordinates for location.");
-    }
+    // get the coordinates for the location from GeolocationService
+    const coordinates = await geolocationService.getCoordinates({
+      streetAddress: streetAddress,
+      city: city,
+      state: state,
+      zip: zip,
+    });
 
     const location: Location = {
       id: nanoid(),
