@@ -32,17 +32,17 @@ export const findAll = async (): Promise<Location[]> => impl.findAll();
 /**
  * Get all of the nearby locations.
  *
- * @param {number} lat - the latitude of the search point
- * @param {number} lng - the longitude of the search point
+ * @param {number} latitude - the latitude of the search point
+ * @param {number} longitude - the longitude of the search point
  * @param {number} radius - the radius around the search point
  * @param {string} unitOfDistance - the unit of distance ("mi" or "km")
  * @param {string} sort - the sort order ("ASC" or "DESC")
  * @returns a Promise resolving to an array of Location objects
  */
 export const findNearbyByGeoRadius = async (
-  lat: number,
-  lng: number,
+  latitude: number,
+  longitude: number,
   radius: number,
   unitOfDistance: 'm' | 'km' | 'ft' | 'mi',
   sort?: 'ASC' | 'DESC'
-): Promise<Location[]> => impl.findNearbyByGeoRadius(lat, lng, radius, unitOfDistance, sort);
+): Promise<Location[]> => impl.findNearbyByGeoRadius(latitude, longitude, radius, unitOfDistance, sort);

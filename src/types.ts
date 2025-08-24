@@ -5,10 +5,7 @@ export type Location = {
   city: string;
   state: string;
   zip: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
+  coordinates: Coordinates;
   description: string;
 }
 
@@ -19,12 +16,12 @@ export type LocationHash = {
   city: string;
   state: string;
   zip: string;
-  lat: string;
-  lng: string;
+  latitude: string;
+  longitude: string;
   description: string;
 }
 
-export type GeoLocation = {
-  latitude: number,
-  longitude: number
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
 };
