@@ -17,8 +17,8 @@ const remap = (data: any): Location => {
     state: data.state,
     zip: data.zip,
     coordinates: {
-      lat: parseFloat(data.lat),
-      lng: parseFloat(data.lng),
+      latitude: parseFloat(data.latitude),
+      longitude: parseFloat(data.longitude),
     },
     description: data.description,
   };
@@ -41,8 +41,8 @@ const flatten = (location: Location): LocationHash => {
     city: location.city,
     state: location.state,
     zip: location.zip,
-    lat: `${location.coordinates.lat}`,
-    lng: `${location.coordinates.lng}`,
+    latitude: `${location.coordinates.latitude}`,
+    longitude: `${location.coordinates.longitude}`,
     description: location.description,
   };
 
@@ -65,8 +65,8 @@ export const insert = async (location: Location): Promise<string> => {
     client.HSET(locationHashKey, { ...flatten(location) }),
     client.SADD(keyGenerator.getLocationIDsKey(), locationHashKey),
     client.GEOADD(locationGeoKey, {
-      longitude: location.coordinates.lng,
-      latitude: location.coordinates.lat,
+      longitude: location.coordinates.longitude,
+      latitude: location.coordinates.latitude,
       member: location.id,
     }),
   ]);
@@ -114,8 +114,8 @@ export const findAll = async (): Promise<Location[]> => {
 };
 
 export const findNearbyByGeoRadius = async (
-  lat: number,
-  lng: number,
+  latitude: number,
+  longitude: number,
   radius: number,
   unitOfDistance: "m" | "km" | "ft" | "mi",
   sort: "ASC" | "DESC" = "ASC"
@@ -125,7 +125,7 @@ export const findNearbyByGeoRadius = async (
 
   const locationIds = await client.GEORADIUS(
     locationGeoKey,
-    { latitude: lat, longitude: lng },
+    { latitude: latitude, longitude: longitude },
     radius,
     unitOfDistance,
     {
