@@ -53,17 +53,6 @@ router.get("/:locationId", async (req, res, next) => {
 });
 
 // POST /locations
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, "./public/data/uploads/");
-//   },
-//   filename: function (req, file, cb) {
-//     const splitFilename = file.originalname?.split(".");
-//     const fileExtension = splitFilename[splitFilename.length - 1];
-//     cb(null, `${nanoid()}.${fileExtension}`);
-//   },
-// });
-
 const upload = multer({ storage: multerUtils.getStorageConfig() });
 
 router.post(
