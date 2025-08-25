@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { body, query, matchedData, validationResult } from "express-validator";
 import multer from "multer";
-import { nanoid } from "nanoid";
 
 import * as service from "../services/locations_service.ts";
 import * as multerUtils from "../utils/multer_utils.ts";
