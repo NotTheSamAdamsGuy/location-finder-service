@@ -14,3 +14,11 @@ export type Coordinates = {
   latitude: number;
   longitude: number;
 };
+
+export type GeolocationSearchInputs = {
+  latitude: string;
+  longitude: string;
+  radius: string;
+  unitOfDistance: "mi" | "km" | "ft" | "m";
+  sort: "ASC" | "DESC";
+};
