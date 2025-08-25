@@ -1,14 +1,22 @@
 import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
-import { Location, LocationHash } from "../../../types.ts";
+import { Location } from "../../../types.ts";
 
 /**
  * Remap a Redis hash to a Location object.
- * @param data - a Redis hash
+ * @param {Record<string, any>} data - a Redis hash
  * @returns {Location} - a Location object
  * @private
  */
-const remap = (data: any): Location => {
+const remap = (data: Record<string, any>): Location => {
+  const imageNames: string[] = [];
+
+  for (const [key, value] of Object.entries(data)) {
+    if (key.startsWith("image-")) {
+      imageNames.push(value);
+    }
+  }
+
   return {
     id: data.id,
     name: data.name,
@@ -21,6 +29,7 @@ const remap = (data: any): Location => {
       longitude: parseFloat(data.longitude),
     },
     description: data.description,
+    imageNames: imageNames
   };
 };
 
@@ -29,12 +38,12 @@ const remap = (data: any): Location => {
  * a set of key/value pairs suitable for storage in a Redis hash.
  *
  * @param {Location} location - a Location domain object.
- * @returns {LocationHash} - a flattened version of 'location', with no nested
+ * @returns {Record<string, any>} - a flattened version of 'location', with no nested
  *  inner objects, suitable for storage in a Redis hash.
  * @private
  */
-const flatten = (location: Location): LocationHash => {
-  const flattenedLocation: LocationHash = {
+const flatten = (location: Location): Record<string, any> => {
+  const flattenedLocation: Record<string, any> = {
     id: `${location.id}`,
     name: location.name,
     streetAddress: location.streetAddress,
@@ -45,6 +54,10 @@ const flatten = (location: Location): LocationHash => {
     longitude: `${location.coordinates.longitude}`,
     description: location.description,
   };
+
+  location.imageNames.forEach((name, index) => {
+    flattenedLocation[`image-${index}`] = name;
+  });
 
   return flattenedLocation;
 };

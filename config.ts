@@ -40,5 +40,14 @@ export const config = {
       geocodeUrl: process.env.MAPBOX_GEOCODE_URL,
       accessToken: process.env.MAPBOX_ACCESS_TOKEN
     }
+  },
+  multer: {
+    storageType: process.env.MULTER_STORAGE_TYPE,
+    diskStorage: {
+      path: process.env.MULTER_STORAGE_PATH
+    },
+    s3Storage: {
+      bucket: process.env.MULTER_STORAGE_S3_BUCKET,
+    }
   }
 }

@@ -52,14 +52,15 @@ export const getNearbyLocations = async (
  * @param {Record<string, string | File[]>} data - data for the location
  * @returns a Promise, resolving to a string containing the database key of the newly-created Location.
  */
-export const addLocation = async (data: Record<string, string | File[]>) => {
+export const addLocation = async (data: Record<string, string | Express.Multer.File[]>) => {
   const name = data.name as string;
   const streetAddress = data.streetAddress as string;
   const city = data.city as string;
   const state = data.state as string;
   const zip = data.zip as string;
   const description = data.description as string;
-  const images = data.images as File[];
+  const files = data.files as Express.Multer.File[];
+  const imageNames = files.map((file) => file.filename);
 
   let coordinates: Coordinates = {
     latitude: 0,
@@ -86,6 +87,7 @@ export const addLocation = async (data: Record<string, string | File[]>) => {
     zip: zip,
     coordinates: coordinates,
     description: description ?? "",
+    imageNames: imageNames,
   };
 
   try {

@@ -7,18 +7,7 @@ export type Location = {
   zip: string;
   coordinates: Coordinates;
   description: string;
-}
-
-export type LocationHash = {
-  id: string;
-  name: string;
-  streetAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  latitude: string;
-  longitude: string;
-  description: string;
+  imageNames: string[];
 }
 
 export type Coordinates = {
