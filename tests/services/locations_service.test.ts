@@ -2,7 +2,6 @@ import { expect, vi, describe, it } from "vitest";
 
 import * as ls from "../../src/services/locations_service.ts";
 import { Location, GeolocationSearchInputs } from "../../src/types.ts";
-import { jsdomTypes } from "vitest/optional-types.js";
 
 vi.mock("../../src/daos/location_dao", () => ({
   findAll: vi.fn().mockReturnValue([
