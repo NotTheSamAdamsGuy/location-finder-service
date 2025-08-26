@@ -8,7 +8,7 @@ export type Location = {
   coordinates: Coordinates;
   description: string;
   imageNames: string[];
-}
+};
 
 export type Coordinates = {
   latitude: number;
@@ -30,4 +30,10 @@ export type User = {
   lastName: string | undefined;
   role: "USER" | "ADMIN";
   lastLoginTimestamp: number | undefined;
-}
+};
+
+export type UserProfile = {
+  username: string;
+  firstName: string;
+  lastName: string;
+};

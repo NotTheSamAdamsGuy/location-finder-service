@@ -6,18 +6,18 @@ import * as userService from "../services/users_service.ts";
 
 const router = Router({ mergeParams: true });
 
-// GET /users?username=abc123
-router.get("/", query("username").notEmpty(), async (req, res, next) => {
-  const error = validationResult(req);
+// GET /users/abc123/profile
+router.get("/:username/profile", async (req, res, next) => {
+  const username = req.params.username;
 
-  if (!error.isEmpty()) {
-    return res.status(400).json({ errors: error.array() });
-  }
-
-  const data = matchedData(req);
   try {
-    const user = await userService.getUserByUsername(data.username);
-    return res.status(200).json(user);
+    const profile = await userService.getUserProfile(username);
+
+    if (profile) {
+      return res.status(200).json(profile);
+    } else {
+      return res.status(404).send({error: "Profile not found"});
+    }
   } catch (err) {
     return next(err);
   }
