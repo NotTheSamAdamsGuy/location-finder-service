@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 
 import { config } from "../config.ts";
 import locationsRoutes from "./routes/locations_routes.ts";
+import usersRoutes from "./routes/users_routes.ts";
 import { logger } from "./logging/logger.ts";
 
 const app = express();
@@ -16,6 +17,7 @@ app.get("/", async (req, res) => {
 });
 
 app.use("/locations", locationsRoutes);
+app.use("/users", usersRoutes);
 
 function errorHandler(
   err: Error,

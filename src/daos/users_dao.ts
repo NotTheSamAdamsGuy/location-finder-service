@@ -1,7 +1,7 @@
 import { loadDao } from "./daoloader.ts";
 import { User } from "../types.ts";
 
-const impl = await loadDao("user");
+const impl = await loadDao("users");
 
 /**
  * Get the user object for a username.
