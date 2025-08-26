@@ -16,7 +16,12 @@ type GeolocationInputs = {
 export const getGeolocation = async (
   locationText: string
 ): Promise<Coordinates> => {
-  return await geolocationDao.geocodeLocation(locationText);
+  try {
+    return await geolocationDao.geocodeLocation(locationText);
+  } catch (err) {
+    // console.log(err); // TODO: replace with logger
+    throw new Error("Unable to get geocode data for location.");
+  }
 };
 
 /**
@@ -37,12 +42,12 @@ export const getCoordinates = async ({
 
   try {
     const geolocation = await getGeolocation(
-      `${streetAddress} ${city} ${state}, ${zip}`
+      `${streetAddress} ${city}, ${state} ${zip}`
     );
     coordinates.latitude = geolocation.latitude;
     coordinates.longitude = geolocation.longitude;
   } catch (err) {
-    console.log(err);
+    // console.log(err); // TODO: replace with logger
     throw new Error("Unable to get coordinates for location.");
   }
 
