@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
   return {
     test: {
       env: env, // Assign loaded env variables to test environment
+      coverage: {
+        provider: "v8"
+      }
     },
   };
 });

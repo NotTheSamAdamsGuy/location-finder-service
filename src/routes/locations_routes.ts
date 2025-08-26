@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { body, query, matchedData, validationResult } from "express-validator";
+import multer from "multer";
 
 import * as service from "../services/locations_service.ts";
+import * as multerUtils from "../utils/multer_utils.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -22,20 +24,20 @@ router.get(
   query("radius").notEmpty(),
   query("unitOfDistance").notEmpty(),
   async (req, res, next) => {
-    const result = validationResult(req);
+    const error = validationResult(req);
 
-    if (result.isEmpty()) {
-      const data = matchedData(req);
-
-      try {
-        const locations = await service.getNearbyLocations(data);
-        return res.status(200).json(locations);
-      } catch (err) {
-        return next(err);
-      }
+    if (!error.isEmpty) {
+      return res.status(400).json({ errors: error.array() });
     }
 
-    return res.status(400).json({ errors: result.array() });
+    const data = matchedData(req);
+
+    try {
+      const locations = await service.getNearbyLocations(data);
+      return res.status(200).json(locations);
+    } catch (err) {
+      return next(err);
+    }
   }
 );
 
@@ -50,8 +52,11 @@ router.get("/:locationId", async (req, res, next) => {
 });
 
 // POST /locations
+const upload = multer({ storage: multerUtils.getStorageConfig() });
+
 router.post(
   "/",
+  upload.array("images"),
   body("name").notEmpty(),
   body("streetAddress").notEmpty(),
   body("city").notEmpty(),
@@ -59,19 +64,21 @@ router.post(
   body("zip").notEmpty(),
   body("description").optional(),
   async (req, res, next) => {
-    const result = validationResult(req);
+    const error = validationResult(req);
 
-    if (result.isEmpty()) {
-      const data = matchedData(req);
-
-      try {
-        const locationKey = await service.addLocation(data);
-        return res.status(200).json(locationKey);
-      } catch (err) {
-        return next(err);
-      }
+    if (!error.isEmpty()) {
+      return res.status(400).json({ errors: error.array() });
     }
-    return res.status(400).json({ errors: result.array() });
+
+    const data = matchedData(req);
+    data.files = req.files;
+
+    try {
+      const locationKey = await service.addLocation(data);
+      return res.status(200).json(locationKey);
+    } catch (err) {
+      return next(err);
+    }
   }
 );
 

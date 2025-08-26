@@ -1,5 +1,5 @@
 import {test, expect} from "vitest";
-import * as keyGenerator from "../src/daos/impl/redis/redis_key_generator";
+import * as keyGenerator from "../../../../src/daos/impl/redis/redis_key_generator";
 
 const testSuiteName = 'redis_key_generator';
 const expectedKeyPrefix = 'test';

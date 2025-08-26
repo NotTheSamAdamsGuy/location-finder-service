@@ -1,5 +1,6 @@
 import * as geolocationDao from "../daos/geolocation_dao.ts";
 import { Coordinates } from "../types.ts";
+import { logger } from "../logging/logger.ts";
 
 type GeolocationInputs = {
   streetAddress: string;
@@ -16,7 +17,12 @@ type GeolocationInputs = {
 export const getGeolocation = async (
   locationText: string
 ): Promise<Coordinates> => {
-  return await geolocationDao.geocodeLocation(locationText);
+  try {
+    return await geolocationDao.geocodeLocation(locationText);
+  } catch (err) {
+    logger.error("Unable to get geocode data for location", err);
+    throw new Error("Unable to get geocode data for location.");
+  }
 };
 
 /**
@@ -37,12 +43,12 @@ export const getCoordinates = async ({
 
   try {
     const geolocation = await getGeolocation(
-      `${streetAddress} ${city} ${state}, ${zip}`
+      `${streetAddress} ${city}, ${state} ${zip}`
     );
     coordinates.latitude = geolocation.latitude;
     coordinates.longitude = geolocation.longitude;
   } catch (err) {
-    console.log(err);
+    logger.error("Unable to get coordinates for location", err);
     throw new Error("Unable to get coordinates for location.");
   }
 

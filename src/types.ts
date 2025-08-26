@@ -7,21 +7,18 @@ export type Location = {
   zip: string;
   coordinates: Coordinates;
   description: string;
-}
-
-export type LocationHash = {
-  id: string;
-  name: string;
-  streetAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  latitude: string;
-  longitude: string;
-  description: string;
+  imageNames: string[];
 }
 
 export type Coordinates = {
   latitude: number;
   longitude: number;
+};
+
+export type GeolocationSearchInputs = {
+  latitude: string;
+  longitude: string;
+  radius: string;
+  unitOfDistance: "mi" | "km" | "ft" | "m";
+  sort: "ASC" | "DESC";
 };

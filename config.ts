@@ -1,26 +1,3 @@
-// interface Service {
-//   host: string | undefined;
-//   port: string | undefined;
-//   logLevel: string | undefined;
-//   dataStore: string;
-// }
-
-// interface DataStore {
-//   host: string | undefined;
-//   port: string | undefined;
-//   password: string | undefined;
-//   keyPrefix?: string | undefined;
-// }
-
-// interface DataStores {
-//   redis: DataStore;
-// }
-
-// interface Config {
-//   service: Service,
-//   dataStores: DataStores
-// }
-
 export const config = {
   service: {
     host: process.env.LF_API_HOST,
