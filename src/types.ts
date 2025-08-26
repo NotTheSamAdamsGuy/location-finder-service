@@ -22,3 +22,12 @@ export type GeolocationSearchInputs = {
   unitOfDistance: "mi" | "km" | "ft" | "m";
   sort: "ASC" | "DESC";
 };
+
+export type User = {
+  username: string;
+  password: string | undefined;
+  firstName: string | undefined;
+  lastName: string | undefined;
+  role: "USER" | "ADMIN";
+  lastLoginTimestamp: number | undefined;
+}
