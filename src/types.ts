@@ -8,7 +8,7 @@ export type Location = {
   coordinates: Coordinates;
   description: string;
   imageNames: string[];
-}
+};
 
 export type Coordinates = {
   latitude: number;
@@ -21,4 +21,19 @@ export type GeolocationSearchInputs = {
   radius: string;
   unitOfDistance: "mi" | "km" | "ft" | "m";
   sort: "ASC" | "DESC";
+};
+
+export type User = {
+  username: string;
+  password: string | undefined;
+  firstName: string | undefined;
+  lastName: string | undefined;
+  role: "USER" | "ADMIN";
+  lastLoginTimestamp: number | undefined;
+};
+
+export type UserProfile = {
+  username: string;
+  firstName: string;
+  lastName: string;
 };

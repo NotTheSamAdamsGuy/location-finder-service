@@ -46,3 +46,15 @@ export const getLocationGeoKey = (): string => getKey(`locations:geo`);
  * @returns - the Redis key name used for the set storing all location IDs.
  */
 export const getLocationIDsKey = () => getKey('locations:ids');
+
+/**
+ * Takes a string username and returns the user key
+ * value for that username.
+ *
+ * Key name: prefix:users:info:[username]
+ * Redis type stored at this key: hash
+ *
+ * @param {string} username - the username of a user.
+ * @returns - the user information key for the provided username.
+ */
+export const getUserHashKey = (username: string) => getKey(`users:info:${username}`);

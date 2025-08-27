@@ -1,24 +1,30 @@
 import { Router } from "express";
 import { body, query, matchedData, validationResult } from "express-validator";
 import multer from "multer";
+import passport from "passport";
 
 import * as service from "../services/locations_service.ts";
 import * as multerUtils from "../utils/multer_utils.ts";
 
 const router = Router({ mergeParams: true });
 
-router.get("/", async (req, res, next) => {
-  try {
-    const locations = await service.getAllLocations();
-    return locations ? res.status(200).json(locations) : res.sendStatus(404);
-  } catch (err) {
-    return next(err);
+router.get(
+  "/",
+  passport.authenticate("bearer", { session: false }),
+  async (req, res, next) => {
+    try {
+      const locations = await service.getAllLocations();
+      return locations ? res.status(200).json(locations) : res.sendStatus(404);
+    } catch (err) {
+      return next(err);
+    }
   }
-});
+);
 
 // GET /locations/nearby
 router.get(
   "/nearby",
+  passport.authenticate("bearer", { session: false }),
   query("latitude").notEmpty(),
   query("longitude").notEmpty(),
   query("radius").notEmpty(),
@@ -42,20 +48,25 @@ router.get(
 );
 
 // GET /locations/abc123
-router.get("/:locationId", async (req, res, next) => {
-  try {
-    const location = await service.getLocation(req.params.locationId);
-    return location ? res.status(200).json(location) : res.sendStatus(404);
-  } catch (err) {
-    return next(err);
+router.get(
+  "/:locationId",
+  passport.authenticate("bearer", { session: false }),
+  async (req, res, next) => {
+    try {
+      const location = await service.getLocation(req.params.locationId);
+      return location ? res.status(200).json(location) : res.sendStatus(404);
+    } catch (err) {
+      return next(err);
+    }
   }
-});
+);
 
 // POST /locations
 const upload = multer({ storage: multerUtils.getStorageConfig() });
 
 router.post(
   "/",
+  passport.authenticate("bearer", { session: false }),
   upload.array("images"),
   body("name").notEmpty(),
   body("streetAddress").notEmpty(),
