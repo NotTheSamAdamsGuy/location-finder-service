@@ -2,6 +2,7 @@ import { Router } from "express";
 import { body, matchedData, validationResult } from "express-validator";
 
 import { generateToken } from "../services/authentication_service.ts";
+import { logger } from "../logging/logger.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -12,7 +13,7 @@ router.post(
   body("password").notEmpty(),
   async (req, res, next) => {
     const error = validationResult(req);
-    console.log(error);
+    logger.error(error);
 
     if (!error.isEmpty()) {
       return res.status(400).json({ errors: error.array() });

@@ -75,5 +75,5 @@ function errorHandler(
 app.use(errorHandler); // this should come after all other app.use instances
 
 app.listen(port, () => {
-  console.log(`App listening on http://${host}:${port}`);
+  logger.info(`App listening on http://${host}:${port}`);
 });

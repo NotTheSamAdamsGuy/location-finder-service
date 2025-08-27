@@ -127,7 +127,6 @@ describe("LocationDao - Redis", () => {
   describe("findNearbyByGeoRadius", () => {
     it("should return an array of locations on success", async () => {
       const locations = await locationDao.findNearbyByGeoRadius(0, 0, 5, "mi", "ASC");
-      console.log(locations);
       expect(locations).toEqual(mockLocations);
     });
   });

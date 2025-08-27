@@ -1,4 +1,5 @@
 import { createClient } from "redis";
+import { logger } from "../../../logging/logger.ts";
 
 /**
  * Get a Redis client object
@@ -6,7 +7,7 @@ import { createClient } from "redis";
  */
 export const getClient = async () => {
   const client = await createClient()
-    .on("error", (err) => console.log("Redis Client Error", err))
+    .on("error", (err) => logger.error(`Redis Client Error: ${err}`))
     .connect();
 
   return client;

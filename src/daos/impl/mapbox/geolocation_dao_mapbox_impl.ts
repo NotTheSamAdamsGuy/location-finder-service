@@ -1,5 +1,6 @@
 import { Coordinates } from "../../../types.ts";
 import { config } from "../../../../config.ts";
+import { logger } from "../../../logging/logger.ts";
 
 /**
  * Get geocode information for a location string
@@ -18,7 +19,7 @@ export const geocodeLocation = async (locationText: string): Promise<Coordinates
       return data.features[0].properties.coordinates;
     } 
   } catch (err) {
-    console.log(err);
+    logger.error(err);
   }
 
   return null;
