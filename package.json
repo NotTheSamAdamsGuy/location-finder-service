@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon",
-    "start": "node dist/app.js",
+    "start": "node --env-file=.env dist/src/app.js",
     "test": "vitest --config ./vitest.config.ts",
     "coverage": "vitest run --coverage"
   },

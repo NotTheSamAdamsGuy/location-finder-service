@@ -9,8 +9,9 @@
     "skipLibCheck": true, // Skip type-checking declaration files (faster builds)
     "outDir": "./dist", // Specifies output directory for compiled files
     "allowImportingTsExtensions": true, // required due to using ESM
-    "emitDeclarationOnly": true, // required for allowImportingTsExtensions
     "declaration": true, // required for emitDeclarationOnly
+    "rewriteRelativeImportExtensions": true,
+    "sourceMap": true,
   },
   "include": ["src/**/*", "config.ts"]
 }
