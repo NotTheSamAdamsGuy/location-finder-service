@@ -3,17 +3,12 @@ import multerS3 from "multer-s3";
 import { nanoid } from "nanoid";
 import { S3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 
-const multerStorageType = process.env.MULTER_STORAGE_TYPE;
-const multerStoragePath = process.env.MULTER_STORAGE_PATH ??= "";
-const multerStorageS3Bucket = process.env.MULTER_STORAGE_S3_BUCKET ??= "";
-const multerStorageS3ACL = process.env.MULTER_STORAGE_S3_ACL ??= "";
-
 /**
  * Get the Multer storage engine configuration.
  * @returns an Multer storage engine object
  */
 export const getStorageConfig = () => {
-  switch (multerStorageType) {
+  switch (process.env.MULTER_STORAGE_TYPE) {
     case "s3":
       return s3Storage;
     default:
@@ -23,7 +18,7 @@ export const getStorageConfig = () => {
 
 const diskStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, multerStoragePath);
+    cb(null, process.env.MULTER_STORAGE_PATH as string);
   },
   filename: function (req, file, cb) {
     cb(null, `${nanoid()}.${getFileExtension(file)}`);
@@ -33,8 +28,8 @@ const diskStorage = multer.diskStorage({
 const s3ClientConfig: S3ClientConfig = {
   region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ""
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string
   }
 };
 
@@ -42,8 +37,8 @@ const s3 = new S3Client(s3ClientConfig);
 
 const s3Storage = multerS3({
   s3: s3,
-  bucket: multerStorageS3Bucket,
-  acl: multerStorageS3ACL,
+  bucket: process.env.MULTER_STORAGE_S3_BUCKET as string,
+  acl: process.env.MULTER_STORAGE_S3_ACL,
   key: function (req, file, cb) {
     cb(null, `${nanoid()}.${getFileExtension(file)}`);
   }

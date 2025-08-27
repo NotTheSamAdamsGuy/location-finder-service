@@ -1,6 +1,6 @@
 import {expect, describe, it, vi} from "vitest";
 
-import * as userDao from "../../../../src/daos/impl/redis/users_dao_redis_impl";
+import * as userDao from "../../../../src/daos/users_dao";
 import { User } from "../../../../src/types";
 
 const mockClient = {
