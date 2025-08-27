@@ -107,7 +107,7 @@ export const addLocation = async (
     state: state,
     zip: zip,
     coordinates: coordinates,
-    description: description ?? "",
+    description: description,
     imageNames: imageNames,
   };
 

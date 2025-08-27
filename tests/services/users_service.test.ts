@@ -21,6 +21,8 @@ vi.mock("../../src/daos/users_dao", () => ({
   findByUsername: vi.fn((username) => {
     if (username === "testuser") {
       return mockUser;
+    } else if (username === "bobbydroptables") {
+      throw new Error("error");
     } else {
       return null;
     }
@@ -38,6 +40,12 @@ describe("UsersService", () => {
       const user = await service.getUserByUsername("joeyjoejoeshabadoo");
       expect(user).toBe(null);
     });
+
+    it("should throw an error if an issue occurred while retrieving user data", async () => {
+      await expect(
+        service.getUserByUsername("bobbydroptables")
+      ).rejects.toThrowError("Unable to fetch user data.");
+    });
   }),
     describe("getUserProfile", () => {
       it("should return a UserProfile object if the user exists", async () => {
@@ -48,6 +56,12 @@ describe("UsersService", () => {
       it("should return a null value if the user does not exist", async () => {
         const userProfile = await service.getUserProfile("joeyjoejoeshabadoo");
         expect(userProfile).toBe(null);
-      })
+      });
+
+      it("should throw an error if an issue occurred while retrieving user profile data", async () => {
+        await expect(
+          service.getUserProfile("bobbydroptables")
+        ).rejects.toThrowError("Unable to fetch profile data");
+      });
     });
 });
