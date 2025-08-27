@@ -16,6 +16,11 @@ export const getUserByUsername = async (
   }
 };
 
+/**
+ * Gets the user profile for the user with the matching username value.
+ * @param {string} username - a username string
+ * @returns {User} a Promise, resolving to UserProfile object if the user exists, otherwise null
+ */
 export const getUserProfile = async (
   username: string
 ): Promise<UserProfile | null> => {
