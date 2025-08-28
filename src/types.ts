@@ -15,6 +15,13 @@ export type Coordinates = {
   longitude: number;
 };
 
+export type Address = {
+  streetAddress: string;
+  city: string;
+  state: string;
+  zip: string;
+};
+
 export type GeolocationSearchInputs = {
   latitude: string;
   longitude: string;

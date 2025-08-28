@@ -9,7 +9,7 @@ import { logger } from "../../../logging/logger.ts";
  */
 export const geocodeLocation = async (locationText: string): Promise<Coordinates | null> => {
   const mapboxConfig = config.dataStores.mapbox;
-  const url = `${mapboxConfig.geocodeUrl}?q=${encodeURIComponent(locationText)}&types=address&access_token=${mapboxConfig.accessToken}`;
+  const url = `${mapboxConfig.geocodeUrl}/forward?q=${encodeURIComponent(locationText)}&types=address&access_token=${mapboxConfig.accessToken}`;
   
   try {
     const res = await fetch(url);
@@ -24,3 +24,24 @@ export const geocodeLocation = async (locationText: string): Promise<Coordinates
 
   return null;
 };
+
+export const reverseGeocodeLocation = async (latitude: number, longitude: number) => {
+  const mapboxConfig = config.dataStores.mapbox;
+  const url = `${mapboxConfig.geocodeUrl}/reverse?latitude=${latitude}&longitude=${longitude}&types=address&access_token=${mapboxConfig.accessToken}`;
+  console.log(url);
+  
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    console.log(data);
+
+    if (data.features?.length > 0) {
+      // return data.features[0].properties.context;
+      return data;
+    } 
+  } catch (err) {
+    logger.error(err);
+  }
+
+  return null;
+}

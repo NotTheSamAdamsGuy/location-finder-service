@@ -1,5 +1,5 @@
 import * as geolocationDao from "../daos/geolocation_dao.ts";
-import { Coordinates } from "../types.ts";
+import { Address, Coordinates } from "../types.ts";
 import { logger } from "../logging/logger.ts";
 
 type GeolocationInputs = {
@@ -7,7 +7,7 @@ type GeolocationInputs = {
   city: string;
   state: string;
   zip: string;
-}
+};
 
 /**
  * Get geolocation data for a given string.
@@ -53,4 +53,39 @@ export const getCoordinates = async ({
   }
 
   return coordinates;
+};
+
+/**
+ * Get an address for a given latitude/longitude coordinates.
+ * @param {Coordinates} props - an object containing latitude and longitude values
+ * @returns a Promise, resolving to an Address object.
+ */
+export const getAddress = async (
+  coordinates: Coordinates
+): Promise<Address> => {
+  const { latitude, longitude } = coordinates;
+  let address: Address = {
+    streetAddress: "",
+    city: "",
+    state: "",
+    zip: "",
+  };
+
+  try {
+    const data = await geolocationDao.reverseGeocodeLocation(
+      latitude,
+      longitude
+    );
+    const context = data.features[0].properties.context;
+
+    address.streetAddress = context.address.name;
+    address.city = context.place.name;
+    address.state = context.region.region_code;
+    address.zip = context.postcode.name;
+
+    return address;
+  } catch (err) {
+    logger.error("Unable to get address data for coordinates", err);
+    throw new Error("Unable to get address data for coordinates.");
+  }
 };
