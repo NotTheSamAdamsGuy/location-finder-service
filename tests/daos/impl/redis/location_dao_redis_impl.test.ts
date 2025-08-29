@@ -3,11 +3,11 @@ import { expect, describe, it, vi } from "vitest";
 import * as locationDao from "../../../../src/daos/location_dao";
 import { Location } from "../../../../src/types";
 
-const mockLocations = [
+const mockLocations: Location[] = [
   {
-    id: "123",
-    name: "Test Location",
-    streetAddress: "123 Main St.",
+    id: "123456",
+    name: "Mock Location 1",
+    streetAddress: "123 Main Street",
     city: "Anytown",
     state: "US",
     zip: "12345",
@@ -16,12 +16,23 @@ const mockLocations = [
       longitude: 0,
     },
     description: "A nice place.",
-    imageNames: ["1234", "5678"],
+    images: [
+      {
+        originalFilename: "test-image-1",
+        filename: "123",
+        description: "",
+      },
+      {
+        originalFilename: "test-image-2",
+        filename: "456",
+        description: "",
+      },
+    ],
   },
   {
-    id: "456",
-    name: "Test Location 2",
-    streetAddress: "456 Main St.",
+    id: "234567",
+    name: "Mock Location 2",
+    streetAddress: "456 Main Street",
     city: "Anytown",
     state: "US",
     zip: "12345",
@@ -30,42 +41,61 @@ const mockLocations = [
       longitude: 0,
     },
     description: "A nicer place.",
-    imageNames: ["2345", "6789"],
+    images: [
+      {
+        originalFilename: "test-image-4",
+        filename: "234",
+        description: "",
+      },
+      {
+        originalFilename: "test-image-5",
+        filename: "567",
+        description: "",
+      },
+    ],
   },
 ];
 
 const mockLocationHashes: Array<Record<string, any>> = [
   {
-    id: "123",
-    name: "Test Location",
-    streetAddress: "123 Main St.",
+    id: "123456",
+    name: "Mock Location 1",
+    streetAddress: "123 Main Street",
     city: "Anytown",
     state: "US",
     zip: "12345",
     latitude: 0,
     longitude: 0,
     description: "A nice place.",
-    "image-0": "1234",
-    "image-1": "5678",
+    "image-originalFileName-0": "test-image-1",
+    "image-filename-0": "123",
+    "image-description-0": "",
+    "image-originalFileName-1": "test-image-2",
+    "image-filename-1": "456",
+    "image-description-1": "",
   },
   {
-    id: "456",
-    name: "Test Location 2",
-    streetAddress: "456 Main St.",
+    id: "234567",
+    name: "Mock Location 2",
+    streetAddress: "456 Main Street",
     city: "Anytown",
     state: "US",
     zip: "12345",
     latitude: 0,
     longitude: 0,
     description: "A nicer place.",
-    "image-0": "2345",
-    "image-1": "6789",
+    "image-originalFileName-0": "test-image-4",
+    "image-filename-0": "234",
+    "image-description-0": "",
+    "image-originalFileName-1": "test-image-5",
+    "image-filename-1": "567",
+    "image-description-1": "",
   },
 ];
 
 const mockClient = {
   HGETALL: (hashkey: string) => {
-    if (hashkey === "test:locations:info:123") {
+    if (hashkey === "test:locations:info:123456") {
       return Promise.resolve(mockLocationHashes[0]);
     } else {
       return Promise.resolve([]);
@@ -107,7 +137,7 @@ vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
 describe("LocationDao - Redis", () => {
   describe("findById", () => {
     it("should return a Location when given a valid ID", async () => {
-      const location = await locationDao.findById("123");
+      const location = await locationDao.findById("123456");
       expect(location).toEqual(mockLocations[0]);
     });
 
@@ -145,8 +175,12 @@ describe("LocationDao - Redis", () => {
           longitude: 0
         },
         description: "The nicest place.",
-        imageNames: [
-          "3939"
+        images: [
+          {
+            originalFilename: "originalName",
+            filename: "3939",
+            description: ""
+          }
         ]
       }
       const locationHashKey = await locationDao.insert(location);

@@ -1,6 +1,57 @@
 import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
-import { Location } from "../../../types.ts";
+import { Image, Location } from "../../../types.ts";
+
+/**
+ * Converts the image properties from a hash into an array of Image objects.
+ * @param {Record<string, string>} data - image properties from a redis hash
+ * @returns - an array of Image objects
+ */
+const convertImagePropertiesToImageArray = (
+  data: Record<string, string>
+): Image[] => {
+  interface DynamicData {
+    [key: string]: string;
+  }
+
+  const images: Image[] = [];
+
+  const groupedById = Object.entries(data as Record<string, string>)
+    .filter((entry) => {
+      return entry[0].startsWith("image");
+    })
+    .map((entry) => {
+      let item: DynamicData = {};
+      const splitKey = entry[0].split("-");
+      item["id"] = splitKey[2];
+      item["key"] = splitKey[1];
+      item["value"] = entry[1];
+
+      return item;
+    }).reduce<Record<string, DynamicData[]>>(
+    (accumulator, currentItem) => {
+      const key = currentItem.id; // The key to group by
+      if (!accumulator[key]) {
+        accumulator[key] = []; // Initialize an empty array for the key if it doesn't exist
+      }
+      accumulator[key].push(currentItem); // Add the current item to the array for that key
+      return accumulator;
+    },
+    {}
+  );
+
+  Object.values(groupedById).map((value) => {
+    const image: Image = {
+      originalFilename: value[0].value,
+      filename: value[1].value,
+      description: value[2].value,
+    };
+
+    images.push(image);
+  });
+
+  return images;
+};
 
 /**
  * Remap a Redis hash to a Location object.
@@ -17,6 +68,8 @@ const remap = (data: Record<string, any>): Location => {
     }
   }
 
+  const images = convertImagePropertiesToImageArray(data);
+  
   return {
     id: data.id,
     name: data.name,
@@ -29,7 +82,7 @@ const remap = (data: Record<string, any>): Location => {
       longitude: parseFloat(data.longitude),
     },
     description: data.description,
-    imageNames: imageNames
+    images: images,
   };
 };
 
@@ -55,8 +108,11 @@ const flatten = (location: Location): Record<string, any> => {
     description: location.description,
   };
 
-  location.imageNames.forEach((name, index) => {
-    flattenedLocation[`image-${index}`] = name;
+  location.images.forEach((image, index) => {
+    flattenedLocation[`image-originalFilename-${index}`] =
+      image.originalFilename;
+    flattenedLocation[`image-filename-${index}`] = image.filename;
+    flattenedLocation[`image-description-${index}`] = image.description || "";
   });
 
   return flattenedLocation;
@@ -98,7 +154,9 @@ export const findById = async (id: string): Promise<Location | null> => {
   const locationKey = keyGenerator.getLocationHashKey(id);
   const locationHash = await client.HGETALL(locationKey);
 
-  return Object.entries(locationHash).length === 0 ? null : remap(locationHash);
+  return Object.entries(locationHash).length === 0
+    ? null
+    : remap(locationHash);
 };
 
 /**
@@ -132,7 +190,7 @@ export const findNearbyByGeoRadius = async (
   radius: number,
   unitOfDistance: "m" | "km" | "ft" | "mi",
   sort: "ASC" | "DESC" = "ASC"
-) => {
+): Promise<Location[]> => {
   const client = await redis.getClient();
   const locationGeoKey = keyGenerator.getLocationGeoKey();
 
@@ -142,7 +200,7 @@ export const findNearbyByGeoRadius = async (
     radius,
     unitOfDistance,
     {
-      SORT: sort
+      SORT: sort,
     }
   );
 
