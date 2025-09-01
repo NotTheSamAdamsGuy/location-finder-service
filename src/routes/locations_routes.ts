@@ -1,9 +1,9 @@
-import { Router } from "express";
-import { body, query, matchedData, validationResult } from "express-validator";
+import { Request, Response, Router } from "express";
+import { body, query, validationResult } from "express-validator";
 import multer from "multer";
 import passport from "passport";
 
-import * as service from "../services/locations_service.ts";
+import * as locationsController from "../controllers/locations_controller.ts";
 import * as multerUtils from "../utils/multer_utils.ts";
 
 const router = Router({ mergeParams: true });
@@ -13,7 +13,7 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const locations = await service.getAllLocations();
+      const locations = await locationsController.getAllLocations();
       return locations ? res.status(200).json(locations) : res.sendStatus(404);
     } catch (err) {
       return next(err);
@@ -29,17 +29,15 @@ router.get(
   query("longitude").notEmpty(),
   query("radius").notEmpty(),
   query("unitOfDistance").notEmpty(),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next) => {
     const error = validationResult(req);
 
     if (!error.isEmpty) {
       return res.status(400).json({ errors: error.array() });
     }
 
-    const data = matchedData(req);
-
     try {
-      const locations = await service.getNearbyLocations(data);
+      const locations = await locationsController.getNearbyLocations(req, res);
       return res.status(200).json(locations);
     } catch (err) {
       return next(err);
@@ -53,7 +51,7 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const location = await service.getLocation(req.params.locationId);
+      const location = await locationsController.getLocation(req, res);
       return location ? res.status(200).json(location) : res.sendStatus(404);
     } catch (err) {
       return next(err);
@@ -82,11 +80,8 @@ router.post(
       return res.status(400).json({ errors: error.array() });
     }
 
-    const data = matchedData(req);
-    data.files = req.files;
-
     try {
-      const locationKey = await service.addLocation(data);
+      const locationKey = await locationsController.postLocation(req, res);
       return res.status(200).json(locationKey);
     } catch (err) {
       return next(err);

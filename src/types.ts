@@ -36,6 +36,27 @@ export type GeolocationSearchInputs = {
   sort: "ASC" | "DESC";
 };
 
+export type NearbyLocationsParams = {
+  longitude: number;
+  latitude: number;
+  radius: number;
+  unitOfDistance: "m" | "km" | "ft" | "mi";
+  sort: "ASC" | "DESC";
+}
+
+export type AddLocationParams = {
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zip: string;
+  description: string;
+  files?: Express.Multer.File[] | Express.MulterS3.File[];
+  imageDescription?: string;
+  coordinates: Coordinates;
+  images: Image[];
+}
+
 export type User = {
   username: string;
   password: string | undefined;

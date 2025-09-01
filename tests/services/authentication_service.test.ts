@@ -26,7 +26,7 @@ vi.mock("../../src/services/users_service", () => ({
 describe("AuthenticationService", () => {
   describe("generateToken", () => {
     it("should return a token for a valid user", async () => {
-      const token = await generateToken("testuser", "password");
+      const token = await generateToken("testuser", "USER");
       expect(token).not.toBe(null);
 
       const decoded: JwtPayload = jwt.verify(
@@ -35,12 +35,7 @@ describe("AuthenticationService", () => {
       ) as JwtPayload;
 
       expect(decoded.username).toEqual("testuser");
-    });
-
-    it("should throw an error for an invalid user", async () => {
-      await expect(generateToken("testuser2", "password")).rejects.toThrowError(
-        "Invalid credentials"
-      );
+      expect(decoded.role).toEqual("USER");
     });
   });
 });

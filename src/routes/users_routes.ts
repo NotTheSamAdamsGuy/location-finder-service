@@ -1,9 +1,7 @@
 import { Router } from "express";
-import { body, query, matchedData, validationResult } from "express-validator";
-import multer from "multer";
 import passport from "passport";
 
-import * as userService from "../services/users_service.ts";
+import * as usersController from "../controllers/users_controller.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -12,10 +10,8 @@ router.get(
   "/:username/profile",
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
-    const username = req.params.username;
-
     try {
-      const profile = await userService.getUserProfile(username);
+      const profile = await usersController.getUserProfile(req, res);
 
       if (profile) {
         return res.status(200).json(profile);

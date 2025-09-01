@@ -1,8 +1,7 @@
-import { Router } from "express";
-import { body, matchedData, validationResult } from "express-validator";
+import { Request, Response, Router } from "express";
+import { body, validationResult } from "express-validator";
 
-import { generateToken } from "../services/authentication_service.ts";
-import { logger } from "../logging/logger.ts";
+import * as authenticationController from "../controllers/authentication_controller.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -11,18 +10,15 @@ router.post(
   "/login",
   body("username").notEmpty(),
   body("password").notEmpty(),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next) => {
     const error = validationResult(req);
-    logger.error(error);
 
     if (!error.isEmpty()) {
       return res.status(400).json({ errors: error.array() });
     }
 
-    const { username, password } = matchedData(req);
-
     try {
-      const token = await generateToken(username, password);
+      const token = await authenticationController.generateToken(req, res);
       return res.json({ token: token });
     } catch (err) {
       const httpErr = err as Error;
