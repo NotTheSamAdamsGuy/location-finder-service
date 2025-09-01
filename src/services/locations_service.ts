@@ -1,8 +1,11 @@
 import { nanoid } from "nanoid";
 
 import * as locationDao from "../daos/location_dao.ts";
-import * as geolocationService from "./geolocation_service.ts";
-import { Coordinates, Location, Image } from "../types.ts";
+import {
+  Location,
+  NearbyLocationsParams,
+  AddLocationParams,
+} from "../types.ts";
 
 /**
  * Get the location's data based on the provided ID value.
@@ -32,17 +35,13 @@ export const getAllLocations = async (): Promise<Location[]> => {
 /**
  * Get locations nearby the given coordinates.
  *
- * @param {Record<string, number | "m" | "km" | "ft" | "mi" | "ASC" | "DESC">} data
+ * @param {NearbyLocationsParams} - data for the location search
  * @returns a Promise, resolving to an array of Location objects
  */
 export const getNearbyLocations = async (
-  data: Record<string, string | "m" | "km" | "ft" | "mi" | "ASC" | "DESC">
+  params: NearbyLocationsParams
 ): Promise<Location[]> => {
-  const latitude = parseFloat(data.latitude as string);
-  const longitude = parseFloat(data.longitude as string);
-  const radius = parseFloat(data.radius as string);
-  const unitOfDistance: any = data.unitOfDistance;
-  const sort: any = data.sort;
+  const { latitude, longitude, radius, unitOfDistance, sort } = params;
 
   try {
     return locationDao.findNearbyByGeoRadius(
@@ -59,71 +58,22 @@ export const getNearbyLocations = async (
 
 /**
  * Add a new Location into the database.
- * @param {Record<string, string | File[]>} data - data for the location
+ * @param {AddLocationParams} params - data for the location
  * @returns a Promise, resolving to a string containing the database key of the newly-created Location.
  */
 export const addLocation = async (
-  data: Record<string, string | Express.Multer.File[] | Express.MulterS3.File>
+  params: AddLocationParams
 ): Promise<string> => {
-  let name = "";
-  let streetAddress = "";
-  let city = "";
-  let state = "";
-  let zip = "";
-  let description = "";
-  const multerStorageType = process.env.MULTER_STORAGE_TYPE;
-  const files = data.files as Express.Multer.File[] | Express.MulterS3.File[];
-  let imageDescriptions: string[] = [];
-
-  for (const [key, value] of Object.entries(data)) {
-    if (key === "name") name = value as string;
-    if (key === "streetAddress") streetAddress = value as string;
-    if (key === "city") city = value as string;
-    if (key === "state") state = value as string;
-    if (key === "zip") zip = value as string;
-    if (key === "description") description = value as string;
-    if (key.startsWith("imageDescription")) {
-      imageDescriptions = value as [];
-    }
-  }
-
-  const images: Image[] =files.map((file, index) => {
-    let image: Image = {
-      originalFilename: "",
-      filename: ""
-    };
-    
-    if (multerStorageType === "s3") {
-      const tempFile = file as Express.MulterS3.File;
-      image.originalFilename = tempFile.originalname;
-      image.filename = tempFile.key;
-    } else {
-      image.originalFilename = file.originalname;
-      image.filename = file.filename;
-    }
-
-    if (imageDescriptions[index] && imageDescriptions[index] !== "") {
-      image.description = imageDescriptions[index];
-    }
-
-    return image;
-  });
-
-  let coordinates: Coordinates = {
-    latitude: 0,
-    longitude: 0,
-  };
-
-  try {
-    coordinates = await geolocationService.getCoordinates({
-      streetAddress: streetAddress,
-      city: city,
-      state: state,
-      zip: zip,
-    });
-  } catch (err: any) {
-    throw new Error("Unable to fetch coordinates data", err);
-  }
+  const {
+    name,
+    streetAddress,
+    city,
+    state,
+    zip,
+    coordinates,
+    description,
+    images,
+  } = params;
 
   const location: Location = {
     id: nanoid(),

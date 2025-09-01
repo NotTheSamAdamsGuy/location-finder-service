@@ -3,7 +3,7 @@ import { expect, vi, describe, it } from "vitest";
 import * as ls from "../../src/services/locations_service.ts";
 import {
   Location,
-  GeolocationSearchInputs,
+  NearbyLocationsParams,
 } from "../../src/types.ts";
 
 const mockLocations: Location[] = [
@@ -130,45 +130,49 @@ describe("LocationsService", () => {
 
   describe("getNearbyLocations", () => {
     it("should return an array of Location objects on success", async () => {
-      const geolocationInputs: GeolocationSearchInputs = {
-        latitude: "30",
-        longitude: "-120",
-        radius: "5",
+      const nearbyLocationsParams: NearbyLocationsParams = {
+        latitude: 30,
+        longitude: -120,
+        radius: 5,
         unitOfDistance: "mi",
         sort: "ASC",
       };
-      const locations = await ls.getNearbyLocations(geolocationInputs);
+
+      const locations = await ls.getNearbyLocations(nearbyLocationsParams);
 
       expect(locations.length).toBe(1);
       expect(locations[0]).toEqual(mockLocations[0]);
     });
 
     it("should throw an error", async () => {
-      const geolocationInputs: GeolocationSearchInputs = {
-        latitude: "40",
-        longitude: "-120",
-        radius: "5",
+      const nearbyLocationsParams: NearbyLocationsParams = {
+        latitude: 40,
+        longitude: -120,
+        radius: 5,
         unitOfDistance: "mi",
         sort: "ASC",
       };
       await expect(
-        ls.getNearbyLocations(geolocationInputs)
+        ls.getNearbyLocations(nearbyLocationsParams)
       ).rejects.toThrowError("Unable to fetch nearby locations");
     });
   });
 
   describe("addLocation", () => {
-    it("should get the location key after saving to the database2", async () => {
-      const location = {
+    it("should get the location key after saving to the database", async () => {
+      const location: Location = {
         id: "123456",
         name: "Mock Location 1",
         streetAddress: "123 Any Street",
         city: "Anytown",
         state: "US",
         zip: "12345",
+        coordinates: {
+          latitude: 0,
+          longitude: 0
+        },
         description: "A mock location",
-        files: [],
-        imageDescriptions: [],
+        images: []
       };
 
       const locationHashKey: string = await ls.addLocation(location);
@@ -183,8 +187,12 @@ describe("LocationsService", () => {
         city: "Boogerville",
         state: "US",
         zip: "12345",
+        coordinates: {
+          latitude: 0,
+          longitude: 0
+        },
         description: "A mock location",
-        files: [],
+        images: [],
       };
 
       await expect(ls.addLocation(location)).rejects.toThrowError(
