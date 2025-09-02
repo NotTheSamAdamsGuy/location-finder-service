@@ -43,7 +43,7 @@ export const postLocation = async (req: Request, res: Response) => {
     }
   }
   
-  const images: Image[] = files.map((file, index) => {
+  const images: Image[] = files?.map((file, index) => {
     let image: Image = {
       originalFilename: "",
       filename: "",

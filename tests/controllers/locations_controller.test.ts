@@ -2,7 +2,7 @@ import { expect, vi, describe, it } from "vitest";
 import { getMockReq, getMockRes } from "vitest-mock-express";
 
 import * as locationsController from "../../src/controllers/locations_controller";
-import { Location } from "../../src/types";
+import { AddLocationParams, Location } from "../../src/types";
 
 const mockLocations: Location[] = [
   {
@@ -89,6 +89,23 @@ vi.mock("../../src/services/locations_service", () => ({
       throw new Error("error");
     }
   }),
+  addLocation: vi.fn((params) => {
+    if (params.name === "New Mock Location") {
+      return "locationId";
+    } else {
+      throw new Error("error");
+    }
+  }),
+}));
+
+vi.mock("../../src/services/geolocation_service", () => ({
+  getCoordinates: vi.fn((streetAddress) => {
+    if (streetAddress === "234 Main Street") {
+      return {latitude: 0, longitude: 0};
+    } else if (streetAddress === "345 Main Street") {
+      throw new Error("geocode error");
+    }
+  })
 }));
 
 describe("LocationsController", () => {
@@ -186,4 +203,38 @@ describe("LocationsController", () => {
   });
 
   // TODO: postLocation
+  describe("postLocation", () => {
+    const locationParams = {
+      name: "New Mock Location",
+      streetAddress: "234 Main Street",
+      city: "Anytown",
+      state: "US",
+      zip: "12345",
+      description: "A mock location",
+      imageDescription: "Ann image of the location"
+    };
+
+    it("should receive a locationId value after a location has been created successfully", async () => {
+      const req = getMockReq({ body: locationParams });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await locationsController.postLocation(req, res);
+      const expected = "locationId";
+
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error if there was a failure", async () => {
+      const newLocationParams = {...locationParams};
+      newLocationParams.name = "Another Mock Location";
+      const req = getMockReq({ body: newLocationParams });
+      const res = getMockRes().res;
+
+      await expect(
+        // @ts-ignore -- ignore the type comparison error with req and res mocks
+        locationsController.postLocation(req, res)
+      ).rejects.toThrowError("error");
+    });
+  });
 });
