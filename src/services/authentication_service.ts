@@ -18,7 +18,7 @@ export const generateToken = async (username: string, role: string) => {
       role: role
     };
     const options: jwt.SignOptions = {
-      expiresIn: parseInt(process.env.JWT_TOKEN_EXPIRATION_TIME_MILLISECONDS as string),
+      expiresIn: parseInt(process.env.JWT_TOKEN_EXPIRATION_TIME_SECONDS as string),
     };
 
     const token = jwt.sign(payload, secretKey, options);
