@@ -60,7 +60,17 @@ router.get(
 );
 
 // POST /locations
-const upload = multer({ storage: multerUtils.getStorageConfig() });
+const allowlist = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+
+const upload = multer({
+  fileFilter: (req, file, cb) => {
+    if (!allowlist.includes(file.mimetype)) {
+      return cb(new Error("File type not allowed. Only images are permitted."));
+    }
+    cb(null, true);
+  },
+  storage: multerUtils.getStorageConfig(),
+});
 
 router.post(
   "/",
