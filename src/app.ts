@@ -24,7 +24,7 @@ passport.use(
     try {
       const decoded: JwtPayload = jwt.verify(
         token,
-        process.env.JWT_SECRET_KEY as string
+        config.secrets.jwtSecretKey as string
       ) as JwtPayload;
       const user = usersService.getUserByUsername(decoded.username);
 

@@ -1,7 +1,5 @@
-import { config } from "../../../../config.ts";
-
 // Prefix that all keys will start with, taken from config.
-let prefix = config.dataStores.redis.keyPrefix;
+let prefix = process.env.REDIS_KEY_PREFIX;
 
 /**
  * Takes a string containing a Redis key name and returns a

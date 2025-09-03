@@ -3,6 +3,8 @@ import multerS3 from "multer-s3";
 import { nanoid } from "nanoid";
 import { S3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 
+import { config } from "../../config.ts";
+
 /**
  * Get the Multer storage engine configuration.
  * @returns an Multer storage engine object
@@ -28,8 +30,8 @@ const diskStorage = multer.diskStorage({
 const s3ClientConfig: S3ClientConfig = {
   region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string
+    accessKeyId: config.secrets.awsAccessKeyId as string,
+    secretAccessKey: config.secrets.awsSecretAccessKey as string
   }
 };
 
