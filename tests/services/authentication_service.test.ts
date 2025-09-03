@@ -1,8 +1,9 @@
 import { expect, vi, describe, it } from "vitest";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
 import { generateToken } from "../../src/services/authentication_service";
 import { User } from "../../src/types";
+import { config } from "../../config";
 
 vi.mock("../../src/services/users_service", () => ({
   getUserByUsername: (username: string) => {
@@ -29,13 +30,15 @@ describe("AuthenticationService", () => {
       const token = await generateToken("testuser", "USER");
       expect(token).not.toBe(null);
 
-      const decoded: JwtPayload = jwt.verify(
-        token,
-        process.env.JWT_SECRET_KEY as string
-      ) as JwtPayload;
+      const secretKey = config.secrets.jwtSecretKey;
+      const encodedKey = new TextEncoder().encode(secretKey);
 
-      expect(decoded.username).toEqual("testuser");
-      expect(decoded.role).toEqual("USER");
+      const { payload } = await jwtVerify(token, encodedKey, {
+        algorithms: ["HS256"],
+      });
+
+      expect(payload.username).toEqual("testuser");
+      expect(payload.role).toEqual("USER");
     });
   });
 });

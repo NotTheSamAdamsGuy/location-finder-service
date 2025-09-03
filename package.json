@@ -17,7 +17,7 @@
     "@aws-sdk/client-s3": "^3.873.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
-    "jsonwebtoken": "^9.0.2",
+    "jose": "^6.1.0",
     "multer": "^2.0.2",
     "multer-s3": "^3.0.1",
     "nanoid": "^5.1.5",
@@ -29,7 +29,6 @@
   "devDependencies": {
     "@aws-sdk/types": "^3.862.0",
     "@types/express": "^5.0.3",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/multer-s3": "^3.0.3",
     "@types/passport": "^1.0.17",
