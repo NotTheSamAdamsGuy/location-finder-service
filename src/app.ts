@@ -1,7 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import passport from "passport";
 import BearerStrategy from "passport-http-bearer";
-import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { config } from "../config.ts";
 import authenticationRoutes from "./routes/authentication_routes.ts";
@@ -10,6 +9,8 @@ import geolocationRoutes from "./routes/geolocation_routes.ts";
 import usersRoutes from "./routes/users_routes.ts";
 import { logger } from "./logging/logger.ts";
 import * as usersService from "./services/users_service.ts";
+import { decrypt } from "./services/authentication_service.ts";
+import { SessionPayload } from "./types.ts";
 
 const app = express();
 const host = config.service.host;
@@ -20,13 +21,10 @@ app.use(express.urlencoded({ extended: true })); // for parsing application/x-ww
 
 // Configure the Bearer Strategy
 passport.use(
-  new BearerStrategy.Strategy(function (token, done) {
+  new BearerStrategy.Strategy(async function (token, done) {
     try {
-      const decoded: JwtPayload = jwt.verify(
-        token,
-        config.secrets.jwtSecretKey as string
-      ) as JwtPayload;
-      const user = usersService.getUserByUsername(decoded.username);
+      const payload = await decrypt(token);
+      const user = await usersService.getUserByUsername(payload?.username as string);
 
       if (!user) {
         return done(null, false); // No user found with this token
