@@ -10,7 +10,6 @@ import usersRoutes from "./routes/users_routes.ts";
 import { logger } from "./logging/logger.ts";
 import * as usersService from "./services/users_service.ts";
 import { decrypt } from "./services/authentication_service.ts";
-import { SessionPayload } from "./types.ts";
 
 const app = express();
 const host = config.service.host;

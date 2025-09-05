@@ -10,6 +10,10 @@ const router = Router({ mergeParams: true });
 
 router.get(
   "/",
+  async (req, res, next) => {
+    res.set("Content-Type", "application/json");
+    return next();
+  },
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {

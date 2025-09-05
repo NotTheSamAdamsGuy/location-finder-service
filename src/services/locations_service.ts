@@ -6,6 +6,7 @@ import {
   NearbyLocationsParams,
   AddLocationParams,
 } from "../types.ts";
+import { logger } from "../logging/logger.ts";
 
 /**
  * Get the location's data based on the provided ID value.
@@ -91,6 +92,7 @@ export const addLocation = async (
     const locationKey = await locationDao.insert(location);
     return locationKey;
   } catch (err: any) {
+    logger.error(err);
     throw new Error("Unable to save location data", err);
   }
 };

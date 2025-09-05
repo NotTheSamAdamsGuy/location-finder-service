@@ -108,7 +108,7 @@ const flatten = (location: Location): Record<string, any> => {
     description: location.description,
   };
 
-  location.images.forEach((image, index) => {
+  location.images?.forEach((image, index) => {
     flattenedLocation[`image-originalFilename-${index}`] =
       image.originalFilename;
     flattenedLocation[`image-filename-${index}`] = image.filename;

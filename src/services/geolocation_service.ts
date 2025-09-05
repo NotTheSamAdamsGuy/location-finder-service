@@ -37,16 +37,24 @@ export const getCoordinates = async ({
   zip,
 }: GeolocationInputs): Promise<Coordinates> => {
   let coordinates: Coordinates = {
-    latitude: 0,
-    longitude: 0,
+    latitude: -1,
+    longitude: -1,
   };
 
   try {
     const geolocation = await getGeolocation(
       `${streetAddress} ${city}, ${state} ${zip}`
     );
-    coordinates.latitude = geolocation.latitude;
-    coordinates.longitude = geolocation.longitude;
+
+    if (geolocation) {
+      coordinates.latitude = geolocation.latitude;
+      coordinates.longitude = geolocation.longitude;
+    }
+
+    if (coordinates.latitude === -1 || coordinates.longitude === -1) {
+      // no data was retrieved from service so we cannot proceed
+      throw new Error("No coordinates were found for the given location");
+    }
   } catch (err) {
     logger.error("Unable to get coordinates for location", err);
     throw new Error("Unable to get coordinates for location.");

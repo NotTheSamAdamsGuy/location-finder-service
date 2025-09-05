@@ -66,8 +66,8 @@ export const postLocation = async (req: Request, res: Response) => {
   });
 
   let coordinates: Coordinates = {
-    latitude: 0,
-    longitude: 0,
+    latitude: -1,
+    longitude: -1,
   };
 
   try {
