@@ -1,6 +1,7 @@
 import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
 import { Image, Location } from "../../../types.ts";
+import { logger } from "../../../logging/logger.ts";
 
 /**
  * Converts the image properties from a hash into an array of Image objects.
@@ -139,6 +140,8 @@ export const insert = async (location: Location): Promise<string> => {
       member: location.id,
     }),
   ]);
+
+  logger.debug(`inserted new location ${locationHashKey}`);
 
   return locationHashKey;
 };

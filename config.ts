@@ -1,3 +1,4 @@
+/* v8 ignore start */
 import fs from "fs";
 
 import { logger } from "./src/logging/logger.ts";
@@ -66,3 +67,4 @@ export const config = {
     redisPassword: redisPassword
   }
 }
+/* v8 ignore stop */
