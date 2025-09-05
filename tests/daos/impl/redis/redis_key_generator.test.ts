@@ -18,4 +18,8 @@ test(`${testSuiteName}: getLocationIDsKey`, () => {
 
 test(`${testSuiteName}: getUserHashKey`, () => {
   expect(keyGenerator.getUserHashKey("test")).toBe(`${expectedKeyPrefix}:users:info:test`);
-})
+});
+
+test(`${testSuiteName}: getTagsKey`, () => {
+  expect(keyGenerator.getLocationsTagsKey()).toBe(`${expectedKeyPrefix}:locations:tags`);
+});

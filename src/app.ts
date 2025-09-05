@@ -7,6 +7,7 @@ import authenticationRoutes from "./routes/authentication_routes.ts";
 import locationsRoutes from "./routes/locations_routes.ts";
 import geolocationRoutes from "./routes/geolocation_routes.ts";
 import usersRoutes from "./routes/users_routes.ts";
+import tagsRoutes from "./routes/tags_routes.ts";
 import { logger } from "./logging/logger.ts";
 import * as usersService from "./services/users_service.ts";
 import { decrypt } from "./services/authentication_service.ts";
@@ -48,6 +49,7 @@ app.use("/authentication", authenticationRoutes);
 app.use("/locations", locationsRoutes);
 app.use("/geolocation", geolocationRoutes)
 app.use("/users", usersRoutes);
+app.use("/tags", tagsRoutes);
 
 function errorHandler(
   err: Error,

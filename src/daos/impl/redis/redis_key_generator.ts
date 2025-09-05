@@ -56,3 +56,12 @@ export const getLocationIDsKey = () => getKey('locations:ids');
  * @returns - the user information key for the provided username.
  */
 export const getUserHashKey = (username: string) => getKey(`users:info:${username}`);
+
+/**
+ * Returns the Redis key used to store tag information
+ *
+ * Key name: prefix:tags
+ * Redis type stored at this key: tags
+ * @returns the Redis key name used to store tag information
+ */
+export const getLocationsTagsKey = () => getKey('locations:tags');

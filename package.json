@@ -36,6 +36,7 @@
     "@types/redis-mock": "^0.17.3",
     "@vitest/coverage-v8": "^3.2.4",
     "nodemon": "^3.1.10",
+    "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
