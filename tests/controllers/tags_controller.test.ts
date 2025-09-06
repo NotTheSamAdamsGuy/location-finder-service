@@ -5,44 +5,87 @@ import { getMockReq, getMockRes } from "vitest-mock-express";
 
 vi.mock("../../src/services/tags_service", () => ({
   getAllTags: vi.fn(() => {
-    return ["tag1", "tag2"];
+    return { success: true, result: ["tag1", "tag2"] };
   }),
   addTag: vi.fn((tag: string) => {
     if (tag === "tag") {
-      return JSON.stringify({message: "success"});
+      return { success: true, result: tag };
     } else {
       throw new Error("error");
     }
-  })
+  }),
+  updateTag: vi.fn((currentTag: string, newTag: string) => {
+    if (currentTag === "tag") {
+      return { success: true, result: newTag, message: "updated" };
+    } else if (currentTag === "tag2") {
+      return { success: true, result: newTag, message: "added" };
+    } else {
+      throw new Error("error");
+    }
+  }),
 }));
 
 describe("TagsController", () => {
   describe("getAllTags", () => {
-    it("should return a list of tags", async () => {
-      const expected = ["tag1", "tag2"];
+    it("should return a result containing list of tags", async () => {
+      const expected = { result: ["tag1", "tag2"] };
       const actual = await controller.getAllTags();
       expect(actual).toEqual(expected);
     });
   });
 
-  describe("postTag", () => {
-    it("should return a success message", async () => {
-      const req = getMockReq({ body: {tag: "tag"} });
+  describe("addTag", () => {
+    it("should return a result containing the tag", async () => {
+      const req = getMockReq({ body: { tag: "tag" } });
       const res = getMockRes().res;
 
       // @ts-ignore -- ignore the type comparison error with req and res mocks
-      const actual = await controller.postTag(req, res);
-      const expected = "{\"message\":\"success\"}";
+      const actual = await controller.addTag(req, res);
+      const expected = { result: "tag" };
       expect(actual).toEqual(expected);
     });
 
     it("should throw an error if it was unable to save the data", async () => {
-      const req = getMockReq({ body: {tag: "tag2"} });
+      const req = getMockReq({ body: { tag: "tag2" } });
       const res = getMockRes().res;
 
       await expect(
         // @ts-ignore -- ignore the type comparison error with req and res mocks
-        controller.postTag(req, res)
+        controller.addTag(req, res)
+      ).rejects.toThrowError("error");
+    });
+  });
+
+  describe("updateTag", () => {
+    it("should return a success - updated message", async () => {
+      const req = getMockReq({ body: { currentTag: "tag", newTag: "newTag" } });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await controller.updateTag(req, res);
+      const expected = { result: "newTag", message: "updated" };
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return a success - added message", async () => {
+      const req = getMockReq({
+        body: { currentTag: "tag2", newTag: "newTag" },
+      });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await controller.updateTag(req, res);
+      const expected = { result: "newTag", message: "added" };
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error if it was unable to update the data", async () => {
+      const req = getMockReq({ body: { tag: "tag3" } });
+      const res = getMockRes().res;
+
+      await expect(
+        // @ts-ignore -- ignore the type comparison error with req and res mocks
+        controller.updateTag(req, res)
       ).rejects.toThrowError("error");
     });
   });

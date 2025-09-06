@@ -4,7 +4,7 @@ import * as tagsDao from "../../../../src/daos/tags_dao";
 
 const mockClient = {
   SMEMBERS: (hashkey: string) => {
-    if (hashkey === "test:locations:tags") {
+    if (hashkey === "test:tags") {
       const tags = ["tag1", "tag2"];
       return Promise.resolve(tags);
     } else {
@@ -17,6 +17,25 @@ const mockClient = {
     } else {
       // TODO: error case
     }
+  },
+  multi: () => {
+    let first = 1;
+    let second = 1;
+    return {
+      SREM: (key, value) => {
+        if (value === "currentTag2") first = 0;
+        return true;
+      },
+      SADD: (key, value) => {
+        return true;
+      },
+      execAsPipeline: () => {
+        return Promise.resolve([first, second]);
+      },
+    }
+  },
+  close: () => {
+    return true;
   }
 };
 
@@ -40,4 +59,18 @@ describe("Tags DAO - Redis", () => {
       expect(actual).toEqual(expected);
     });
   });
+
+  describe("update", () => {
+    it("should return [1, 1] when a tag is updated", async () => {
+      const expected = [1, 1];
+      const actual = await tagsDao.update("currentTag", "newTag");
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return [0, 1] when a tag is created", async () => {
+      const expected = [0, 1];
+      const actual = await tagsDao.update("currentTag2", "newTag2");
+      expect(actual).toEqual(expected);
+    });
+  })
 });

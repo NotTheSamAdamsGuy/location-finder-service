@@ -64,4 +64,4 @@ export const getUserHashKey = (username: string) => getKey(`users:info:${usernam
  * Redis type stored at this key: tags
  * @returns the Redis key name used to store tag information
  */
-export const getLocationsTagsKey = () => getKey('locations:tags');
+export const getTagsKey = () => getKey('tags');

@@ -12,13 +12,22 @@ vi.mock("../../src/daos/tags_dao", () => ({
     } else {
       throw new Error("error");
     }
-  })
+  }),
+  update: vi.fn((currentTag, newTag) => {
+    if (currentTag === "currentTag") {
+      return { tag: newTag, message: "updated" };
+    } else if (currentTag === "currentTag2") {
+      return { tag: newTag, message: "added" };
+    } else {
+      throw new Error("error");
+    }
+  }),
 }));
 
 describe("TagsService", () => {
   describe("getAllTags", () => {
     it("should return a list of tags", async () => {
-      const expected = ["tag1", "tag2"];
+      const expected = { success: true, result: ["tag1", "tag2"] };
       const actual = await service.getAllTags();
       expect(actual).toEqual(expected);
     });
@@ -26,13 +35,31 @@ describe("TagsService", () => {
 
   describe("addTag", () => {
     it("should return a success message when the tag has been added to the database", async () => {
-      const expected = JSON.stringify({ message: "success" });
+      const expected = { success: true, result: "tag" };
       const actual = await service.addTag("tag");
       expect(actual).toEqual(expected);
     });
 
     it("should throw an error saying it can't save location data", async () => {
-      await expect(service.addTag("bad tag")).rejects.toThrowError(
+      await expect(service.addTag("bad tag")).rejects.toThrowError("error");
+    });
+  });
+
+  describe("updateTag", () => {
+    it("should return a success - updated message", async () => {
+      const expected = { success: true, result: "newTag", message: "updated" };
+      const actual = await service.updateTag("currentTag", "newTag");
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return a success - added message", async () => {
+      const expected = { success: true, result: "newTag", message: "updated" };
+      const actual = await service.updateTag("currentTag2", "newTag");
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error", async () => {
+      await expect(service.updateTag("bad tag", "tag")).rejects.toThrowError(
         "error"
       );
     });

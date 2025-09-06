@@ -21,5 +21,5 @@ test(`${testSuiteName}: getUserHashKey`, () => {
 });
 
 test(`${testSuiteName}: getTagsKey`, () => {
-  expect(keyGenerator.getLocationsTagsKey()).toBe(`${expectedKeyPrefix}:locations:tags`);
+  expect(keyGenerator.getTagsKey()).toBe(`${expectedKeyPrefix}:tags`);
 });
