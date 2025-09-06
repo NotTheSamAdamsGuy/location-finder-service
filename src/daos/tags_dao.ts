@@ -12,8 +12,18 @@ export const findAll = (): Promise<string[]> => {
 /**
  * Insert a tag string into the database
  * @param tag a tag string
- * @returns a Promise, resolving to the tag's ID string
+ * @returns a Promise, resolving to the number of entries added to the set
  */
 export const insert = (tag: string): Promise<number> => {
   return impl.insert(tag);
+}
+
+/**
+ * Edit a tag string in the database
+ * @param currentTag the current value of the tag
+ * @param newTag the new value of the tag
+ * @returns a Promise, resolving to the number of entries added to the set
+ */
+export const update = (currentTag: string, newTag: string): Promise<any> => {
+  return impl.update(currentTag, newTag);
 }

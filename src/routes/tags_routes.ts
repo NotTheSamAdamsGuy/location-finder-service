@@ -9,11 +9,11 @@ const router = Router({ mergeParams: true });
 // GET /tags
 router.get(
   "/",
-  // passport.authenticate("bearer", { session: false }),
+  passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const tags = await tagsController.getAllTags();
-      return res.status(200).json(tags);
+      const data = await tagsController.getAllTags();
+      return res.status(200).json(data.result);
     } catch (err) {
       return next(err);
     }
@@ -33,8 +33,37 @@ router.post(
     }
 
     try {
-      const tagKey = await tagsController.postTag(req, res);
-      return res.status(200).json(tagKey);
+      const data = await tagsController.addTag(req, res);
+      return res.status(201).json({ message: "Tag added successfully", result: data.result });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+router.put(
+  "/",
+  passport.authenticate("bearer", { session: false }),
+  body("currentTag").notEmpty(),
+  body("newTag").notEmpty(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const error = validationResult(req);
+
+    if (!error.isEmpty()) {
+      return res.status(400).json({ errors: error.array() });
+    }
+
+    try {
+      const data = await tagsController.updateTag(req, res);
+      let statusCode = 200;
+      let message = "Tag updated successfully";
+
+      if (data.message === "added") {
+        statusCode = 201;
+        message = "Tag added successfully";
+      }
+
+      return res.status(statusCode).json({ message: message, result: data.result });
     } catch (err) {
       return next(err);
     }
