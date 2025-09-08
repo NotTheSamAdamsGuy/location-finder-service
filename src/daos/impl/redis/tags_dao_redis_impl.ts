@@ -1,8 +1,5 @@
-import { RedisClientType } from "redis";
 import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
-import { logger } from "../../../logging/logger.ts";
-import RedisClientMultiCommand from "redis";
 
 const tagsKey = keyGenerator.getTagsKey();
 
@@ -14,6 +11,19 @@ export const findAll = async () => {
   const result = await client.SMEMBERS(tagsKey);
   await client.close();
   return result;
+};
+
+/**
+ * Get a tag from the database
+ * @param tag a string
+ * @returns a tag string or null if the tag does not exist
+ */
+export const find = async (tagToFind: string): Promise<string | null> => {
+  const client = await redis.getClient();
+  const tags = await client.SMEMBERS(tagsKey);
+  const tagExists = tags.find((tag) => tag === tagToFind);
+
+  return tagExists ? tagToFind : null;
 };
 
 /**

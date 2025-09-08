@@ -3,7 +3,7 @@ import { logger } from "../logging/logger.ts";
 import * as TagsService from "../services/tags_service.ts";
 
 export type TagsControllerResult = {
-  result: string | string[];
+  result: string | string[] | null;
   message?: string;
 };
 
@@ -17,6 +17,24 @@ export const getAllTags = async (): Promise<TagsControllerResult> => {
     return { result: data.result };
   } catch (err) {
     logger.error("Unable to get tags data", err);
+    throw err;
+  }
+};
+
+/**
+ * Get the matching tag in the database
+ * @returns a string or null
+ */
+export const getTag = async (
+  req: Request,
+  res: Response
+): Promise<TagsControllerResult> => {
+  try {
+    const tag = req.params.tag;
+    const data = await TagsService.getTag(tag);
+    return { result: data.result };
+  } catch (err) {
+    logger.error("Unable to get tag data", err);
     throw err;
   }
 };
@@ -57,7 +75,7 @@ export const updateTag = async (
 
   try {
     const data = await TagsService.updateTag(currentTag, newTag);
-    return {result: data.result, message: data.message || undefined };
+    return { result: data.result, message: data.message || undefined };
   } catch (err) {
     logger.error("Encountered error while putting tag data to service", err);
     throw err;

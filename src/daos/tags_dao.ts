@@ -10,6 +10,13 @@ export const findAll = (): Promise<string[]> => {
 }
 
 /**
+ * Get one of the tags.
+ */
+export const find = (tag: string): Promise<string | null> => {
+  return impl.find(tag);
+};
+
+/**
  * Insert a tag string into the database
  * @param tag a tag string
  * @returns a Promise, resolving to the number of entries added to the set

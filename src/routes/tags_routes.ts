@@ -20,6 +20,20 @@ router.get(
   }
 );
 
+// GET /tags/:tag
+router.get(
+  "/:tag",
+  passport.authenticate("bearer", { session: false }),
+  async (req, res, next) => {
+    try {
+      const data = await tagsController.getTag(req, res);
+      return res.status(200).json(data.result);
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
 // POST /tags
 router.post(
   "/",

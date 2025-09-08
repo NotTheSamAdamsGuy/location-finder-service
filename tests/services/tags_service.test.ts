@@ -6,6 +6,15 @@ vi.mock("../../src/daos/tags_dao", () => ({
   findAll: vi.fn(() => {
     return ["tag1", "tag2"];
   }),
+  find: vi.fn((tag) => {
+    if (tag === "tag1") {
+      return "tag1";
+    } else if (tag === "tag3") {
+      return null;
+    } else {
+      throw new Error("error");
+    }
+  }),
   insert: vi.fn((tag) => {
     if (tag === "tag") {
       return { message: "success" };
@@ -30,6 +39,26 @@ describe("TagsService", () => {
       const expected = { success: true, result: ["tag1", "tag2"] };
       const actual = await service.getAllTags();
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe("getTag", () => {
+    it("should return a tag", async () => {
+      const expected = { success: true, result: "tag1" };
+      const actual = await service.getTag("tag1");
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return null", async () => {
+      const expected = { success: true, result: null };
+      const actual = await service.getTag("tag3");
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error", async () => {
+      await expect(service.getTag("bad tag")).rejects.toThrowError(
+        "error"
+      );
     });
   });
 

@@ -28,5 +28,7 @@ describe("Multer Utils", () => {
       expect(keys).toContain("s3");
       expect(keys).not.toContain("getFilename");
     });
+
+    vi.unstubAllEnvs();
   });
 });

@@ -7,6 +7,15 @@ vi.mock("../../src/services/tags_service", () => ({
   getAllTags: vi.fn(() => {
     return { success: true, result: ["tag1", "tag2"] };
   }),
+  getTag: vi.fn((tag: string) => {
+    if (tag === "tag") {
+      return { success: true, result: tag };
+    } else if (tag === "tag2") {
+      return { success: true, result: null };
+    } else {
+      throw new Error("error");
+    }
+  }),
   addTag: vi.fn((tag: string) => {
     if (tag === "tag") {
       return { success: true, result: tag };
@@ -31,6 +40,38 @@ describe("TagsController", () => {
       const expected = { result: ["tag1", "tag2"] };
       const actual = await controller.getAllTags();
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe("getTag", () => {
+    it("should return a tag", async () => {
+      const req = getMockReq({ params: { tag: "tag" } });
+      const res = getMockRes().res;
+
+      const expected = { result: "tag" };
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await controller.getTag(req, res);
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return a null", async () => {
+      const req = getMockReq({ params: { tag: "tag2" } });
+      const res = getMockRes().res;
+
+      const expected = { result: null };
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await controller.getTag(req, res);
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error", async () => {
+      const req = getMockReq({ body: { tag: "tag3" } });
+      const res = getMockRes().res;
+
+      await expect(
+        // @ts-ignore -- ignore the type comparison error with req and res mocks
+        controller.addTag(req, res)
+      ).rejects.toThrowError("error");
     });
   });
 

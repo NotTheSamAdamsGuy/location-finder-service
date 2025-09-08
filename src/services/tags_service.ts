@@ -4,7 +4,7 @@ import { logger } from "../logging/logger.ts";
 export type TagsServiceReply = {
   success: boolean;
   message?: string;
-  result: string | string[];
+  result: string | string[] | null;
 };
 
 /**
@@ -23,6 +23,23 @@ export const getAllTags = async (): Promise<TagsServiceReply> => {
     throw err;
   }
 };
+
+/**
+ * Get a tag from the database.
+ * @returns a Promise resolving to a TagServiceReply object
+ */
+export const getTag = async (tagToFind: string): Promise<TagsServiceReply> => {
+  try {
+    const tag = await tagsDao.find(tagToFind);
+    return ({ success: true, result: tag })
+  } catch (err) {
+    logger.error(
+      "Encountered error while retrieving tag from database client",
+      err
+    );
+    throw err;
+  }
+}
 
 /**
  * Add a tag into the database

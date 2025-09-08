@@ -7,6 +7,9 @@ const mockClient = {
     if (hashkey === "test:tags") {
       const tags = ["tag1", "tag2"];
       return Promise.resolve(tags);
+    } else if (hashkey === "test2:tags") {
+      const tags = ["single tag"];
+      return Promise.resolve(tags);
     } else {
       return Promise.resolve([]);
     }
@@ -51,6 +54,25 @@ describe("Tags DAO - Redis", () => {
       expect(actual).toEqual(expected);
     });
   });
+
+  // TODO: uncomment these after I figure out how to get vi.stubEnv working - possibly due to when we are setting the value
+  // describe("find", () => {
+  //   it("should return the tag when the tag exists in the db", async () => {
+  //     vi.stubEnv("process.env.REDIS_KEY_PREFIX", "test2");
+  //     const expected = "single tag";
+  //     const actual = await tagsDao.find("single tag");
+  //     expect(actual).toEqual(expected);
+  //   });
+
+  //   it("should return a null value when the tag does not exist in the db", async () => {
+  //     vi.stubEnv("process.env.REDIS_KEY_PREFIX", "test2");
+  //     const expected = null;
+  //     const actual = await tagsDao.find("no tag");
+  //     expect(actual).toEqual(expected);
+  //   });
+
+  //   vi.unstubAllEnvs();
+  // });
 
   describe("insert", () => {
     it("should return the number of members added to the set", async () => {
