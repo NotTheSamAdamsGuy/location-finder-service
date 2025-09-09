@@ -36,7 +36,7 @@ export const insert = async (tag: string): Promise<number> => {
   const result = await client.SADD(tagsKey, tag);
   await client.close();
   return result;
-}
+};
 
 /**
  * Edit a tag string in the database
@@ -44,9 +44,12 @@ export const insert = async (tag: string): Promise<number> => {
  * @param newTag the new value of the tag
  * @returns a Promise, resolving to an array containing the responses from Redis
  */
-export const update = async (currentTag: string, newTag: string): Promise<any> => {
+export const update = async (
+  currentTag: string,
+  newTag: string
+): Promise<any> => {
   const client = await redis.getClient();
-  
+
   const pipeline = client.multi();
 
   pipeline.SREM(tagsKey, currentTag);
@@ -56,4 +59,15 @@ export const update = async (currentTag: string, newTag: string): Promise<any> =
   await client.close();
 
   return result;
-}
+};
+
+/**
+ * Remove a tag string in the database
+ * @returns a Promise, resolving to the number of entries removed from the set
+ */
+export const remove = async (tag: string): Promise<number> => {
+  const client = await redis.getClient();
+  const result = await client.SREM(tagsKey, tag);
+  await client.close();
+  return result;
+};

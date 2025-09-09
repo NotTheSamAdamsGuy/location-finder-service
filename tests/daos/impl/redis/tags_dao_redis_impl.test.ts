@@ -21,6 +21,13 @@ const mockClient = {
       // TODO: error case
     }
   },
+  SREM: (hashkey: string, tag: string) => {
+    if (tag === "tagToDelete") {
+      return Promise.resolve(1);
+    } else {
+      return Promise.resolve(0);
+    }
+  },
   multi: () => {
     let first = 1;
     let second = 1;
@@ -95,4 +102,12 @@ describe("Tags DAO - Redis", () => {
       expect(actual).toEqual(expected);
     });
   })
+
+  describe("remove", () => {
+    it("should return a 1", async () => {
+      const expected = 1;
+      const actual = await tagsDao.remove("tagToDelete");
+      expect(actual).toEqual(expected);
+    });
+  });
 });

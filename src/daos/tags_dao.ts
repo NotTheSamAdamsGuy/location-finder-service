@@ -26,11 +26,19 @@ export const insert = (tag: string): Promise<number> => {
 }
 
 /**
- * Edit a tag string in the database
+ * Update a tag string in the database
  * @param currentTag the current value of the tag
  * @param newTag the new value of the tag
  * @returns a Promise, resolving to the number of entries added to the set
  */
 export const update = (currentTag: string, newTag: string): Promise<any> => {
   return impl.update(currentTag, newTag);
+}
+
+/**
+ * Remove a tag string in the database
+ * @returns a Promise, resolving to the number of entries removed from the set
+ */
+export const remove = (tag: string): Promise<number> => {
+  return impl.remove(tag);
 }

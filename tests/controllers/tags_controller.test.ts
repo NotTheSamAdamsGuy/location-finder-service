@@ -32,6 +32,13 @@ vi.mock("../../src/services/tags_service", () => ({
       throw new Error("error");
     }
   }),
+  removeTag: vi.fn((tag: string) => {
+    if (tag === "tagToDelete") {
+      return { success: true };
+    } else {
+      throw new Error("error");
+    }
+  })
 }));
 
 describe("TagsController", () => {
@@ -122,6 +129,30 @@ describe("TagsController", () => {
 
     it("should throw an error if it was unable to update the data", async () => {
       const req = getMockReq({ body: { tag: "tag3" } });
+      const res = getMockRes().res;
+
+      await expect(
+        // @ts-ignore -- ignore the type comparison error with req and res mocks
+        controller.updateTag(req, res)
+      ).rejects.toThrowError("error");
+    });
+  });
+
+  describe("removeTag", () => {
+    it("should return a success message", async () => {
+      const req = getMockReq({
+        params: { tag: "tagToDelete" },
+      });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await controller.removeTag(req, res);
+      const expected = { message: "deleted" };
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error if it was unable to delete the data", async () => {
+      const req = getMockReq({ body: { tag: "bad tag" } });
       const res = getMockRes().res;
 
       await expect(

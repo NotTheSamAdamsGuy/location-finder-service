@@ -3,7 +3,7 @@ import { logger } from "../logging/logger.ts";
 import * as TagsService from "../services/tags_service.ts";
 
 export type TagsControllerResult = {
-  result: string | string[] | null;
+  result?: string | string[] | null;
   message?: string;
 };
 
@@ -76,6 +76,27 @@ export const updateTag = async (
   try {
     const data = await TagsService.updateTag(currentTag, newTag);
     return { result: data.result, message: data.message || undefined };
+  } catch (err) {
+    logger.error("Encountered error while putting tag data to service", err);
+    throw err;
+  }
+};
+
+/**
+ * Delete a tag in the database
+ * @param req a Request object
+ * @param res a Response object
+ * @returns a Promise, resolving to a TagsServiceReply object
+ */
+export const removeTag = async (
+  req: Request,
+  res: Response
+): Promise<TagsControllerResult> => {
+  const tagToRemove = req.params.tag;
+
+  try {
+    await TagsService.removeTag(tagToRemove);
+    return { message: "deleted" };
   } catch (err) {
     logger.error("Encountered error while putting tag data to service", err);
     throw err;

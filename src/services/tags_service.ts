@@ -4,7 +4,7 @@ import { logger } from "../logging/logger.ts";
 export type TagsServiceReply = {
   success: boolean;
   message?: string;
-  result: string | string[] | null;
+  result?: string | string[] | null;
 };
 
 /**
@@ -90,4 +90,23 @@ export const updateTag = async (
     );
     throw err;
   }
+};
+
+/**
+ * Remove a tag from the database
+ * @param tag the tag to remove
+ * @returns a Promise resolving to a TagServiceReply object
+ */
+export const removeTag = async (tag: string) => {
+  try {
+    await tagsDao.remove(tag);
+    return { success: true };
+  } catch (err) {
+    logger.error(
+      "Encountered error while trying to send tag data to database client",
+      err
+    );
+    throw err;
+  }
+
 };

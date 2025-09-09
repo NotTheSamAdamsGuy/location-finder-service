@@ -31,6 +31,13 @@ vi.mock("../../src/daos/tags_dao", () => ({
       throw new Error("error");
     }
   }),
+  remove: vi.fn((tagToRemove) => {
+    if (tagToRemove === "tagToRemove") {
+      return { success: true }
+    } else {
+      throw new Error("error");
+    }
+  })
 }));
 
 describe("TagsService", () => {
@@ -89,6 +96,20 @@ describe("TagsService", () => {
 
     it("should throw an error", async () => {
       await expect(service.updateTag("bad tag", "tag")).rejects.toThrowError(
+        "error"
+      );
+    });
+  });
+
+  describe("removeTag", () => {
+    it("should return a success message", async () => {
+      const expected = { success: true };
+      const actual = await service.removeTag("tagToRemove");
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error", async () => {
+      await expect(service.removeTag("bad tag")).rejects.toThrowError(
         "error"
       );
     });

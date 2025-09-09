@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import passport from "passport";
-import { body, validationResult } from "express-validator";
+import { body, param, validationResult } from "express-validator";
 
 import * as tagsController from "../controllers/tags_controller.ts";
 
@@ -78,6 +78,28 @@ router.put(
       }
 
       return res.status(statusCode).json({ message: message, result: data.result });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+router.delete(
+  "/:tag",
+  passport.authenticate("bearer", { session: false }),
+  param("tag").notEmpty(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const error = validationResult(req);
+
+    if (!error.isEmpty()) {
+      return res.status(400).json({ errors: error.array() });
+    }
+
+    try {
+      const data = await tagsController.removeTag(req, res);
+      let statusCode = 200;
+      let message = "Tag removed successfully";
+      return res.status(statusCode).json({ message: message });
     } catch (err) {
       return next(err);
     }
