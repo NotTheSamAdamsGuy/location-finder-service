@@ -87,6 +87,7 @@ router.post(
   body("zip").notEmpty(),
   body("description").optional(),
   body("imageDescription").optional(),
+  body("tag").optional(),
   async (req, res, next) => {
     const error = validationResult(req);
 

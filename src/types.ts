@@ -14,6 +14,7 @@ export type Location = {
   coordinates: Coordinates;
   description: string;
   images: Image[];
+  tags?: string[];
 };
 
 export type Coordinates = {
@@ -55,6 +56,7 @@ export type AddLocationParams = {
   imageDescription?: string;
   coordinates: Coordinates;
   images: Image[];
+  tags?: string[];
 }
 
 export type User = {

@@ -42,6 +42,16 @@ export const postLocation = async (req: Request, res: Response) => {
       imageDescriptions = [req.body.imageDescription]
     }
   }
+
+  let tags: string[] = [];
+
+  if (req.body.tag) {
+    if (Array.isArray(req.body.tag)) {
+      tags = req.body.tag;
+    } else {
+      tags = [req.body.tag]
+    }
+  }
   
   const images: Image[] = files?.map((file, index) => {
     let image: Image = {
@@ -89,6 +99,7 @@ export const postLocation = async (req: Request, res: Response) => {
     zip: zip,
     description: description,
     images: images,
-    coordinates: coordinates
+    coordinates: coordinates,
+    tags: tags
   });
 }

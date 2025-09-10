@@ -36,6 +36,7 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
+    tags: ["tag1", "tag2"]
   },
   {
     id: "234567",
@@ -66,6 +67,7 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
+    tags: []
   },
 ];
 
@@ -172,7 +174,8 @@ describe("LocationsService", () => {
           longitude: 0
         },
         description: "A mock location",
-        images: []
+        images: [],
+        tags: ["tag1", "tag2"]
       };
 
       const locationHashKey: string = await ls.addLocation(location);
@@ -193,6 +196,7 @@ describe("LocationsService", () => {
         },
         description: "A mock location",
         images: [],
+        tags: ["tag1", "tag2"]
       };
 
       await expect(ls.addLocation(location)).rejects.toThrowError(

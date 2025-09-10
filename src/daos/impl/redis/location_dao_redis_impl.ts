@@ -29,17 +29,15 @@ const convertImagePropertiesToImageArray = (
       item["value"] = entry[1];
 
       return item;
-    }).reduce<Record<string, DynamicData[]>>(
-    (accumulator, currentItem) => {
+    })
+    .reduce<Record<string, DynamicData[]>>((accumulator, currentItem) => {
       const key = currentItem.id; // The key to group by
       if (!accumulator[key]) {
         accumulator[key] = []; // Initialize an empty array for the key if it doesn't exist
       }
       accumulator[key].push(currentItem); // Add the current item to the array for that key
       return accumulator;
-    },
-    {}
-  );
+    }, {});
 
   Object.values(groupedById).map((value) => {
     const image: Image = {
@@ -52,6 +50,12 @@ const convertImagePropertiesToImageArray = (
   });
 
   return images;
+};
+
+const convertTagMembersToArray = (data: Record<string, string>): string[] => {
+  return Object.entries(data).filter((entry) =>
+    entry[0].startsWith("tag-")
+  ).map((entry) => entry[1]);
 };
 
 /**
@@ -70,7 +74,8 @@ const remap = (data: Record<string, any>): Location => {
   }
 
   const images = convertImagePropertiesToImageArray(data);
-  
+  const tags = convertTagMembersToArray(data);
+
   return {
     id: data.id,
     name: data.name,
@@ -84,6 +89,7 @@ const remap = (data: Record<string, any>): Location => {
     },
     description: data.description,
     images: images,
+    tags: tags
   };
 };
 
@@ -114,6 +120,10 @@ const flatten = (location: Location): Record<string, any> => {
       image.originalFilename;
     flattenedLocation[`image-filename-${index}`] = image.filename;
     flattenedLocation[`image-description-${index}`] = image.description || "";
+  });
+
+  location.tags?.forEach((tag, index) => {
+    flattenedLocation[`tag-${index}`] = tag;
   });
 
   return flattenedLocation;
@@ -157,9 +167,7 @@ export const findById = async (id: string): Promise<Location | null> => {
   const locationKey = keyGenerator.getLocationHashKey(id);
   const locationHash = await client.HGETALL(locationKey);
 
-  return Object.entries(locationHash).length === 0
-    ? null
-    : remap(locationHash);
+  return Object.entries(locationHash).length === 0 ? null : remap(locationHash);
 };
 
 /**

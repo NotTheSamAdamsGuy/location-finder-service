@@ -28,6 +28,7 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
+    tags: ["tag1", "tag2"]
   },
   {
     id: "234567",
@@ -53,6 +54,7 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
+    tags: []
   },
 ];
 
@@ -73,6 +75,8 @@ const mockLocationHashes: Array<Record<string, any>> = [
     "image-originalFileName-1": "test-image-2",
     "image-filename-1": "456",
     "image-description-1": "",
+    "tag-0": "tag1",
+    "tag-1": "tag2"
   },
   {
     id: "234567",
