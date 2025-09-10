@@ -74,6 +74,7 @@ export const addLocation = async (
     coordinates,
     description,
     images,
+    tags
   } = params;
 
   const location: Location = {
@@ -86,6 +87,7 @@ export const addLocation = async (
     coordinates: coordinates,
     description: description,
     images: images,
+    tags: tags
   };
 
   try {
