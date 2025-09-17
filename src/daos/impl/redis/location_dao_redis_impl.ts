@@ -153,6 +153,8 @@ export const insert = async (location: Location): Promise<string> => {
 
   logger.debug(`inserted new location ${locationHashKey}`);
 
+  await client.close();
+
   return locationHashKey;
 };
 
@@ -166,6 +168,8 @@ export const findById = async (id: string): Promise<Location | null> => {
   const client = await redis.getClient();
   const locationKey = keyGenerator.getLocationHashKey(id);
   const locationHash = await client.HGETALL(locationKey);
+
+  await client.close();
 
   return Object.entries(locationHash).length === 0 ? null : remap(locationHash);
 };
@@ -191,6 +195,8 @@ export const findAll = async (): Promise<Location[]> => {
   const locations: Location[] = locationHashes.map((locationHash) => {
     return remap(locationHash);
   });
+
+  await client.close();
 
   return locations;
 };
@@ -227,6 +233,8 @@ export const findNearbyByGeoRadius = async (
   const locations: Location[] = locationHashes.map((locationHash) => {
     return remap(locationHash);
   });
+
+  await client.close();
 
   return locations;
 };
