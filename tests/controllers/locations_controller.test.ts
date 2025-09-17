@@ -101,9 +101,9 @@ vi.mock("../../src/services/locations_service", () => ({
 }));
 
 vi.mock("../../src/services/geolocation_service", () => ({
-  getCoordinates: vi.fn((streetAddress) => {
+  getCoordinates: vi.fn(({streetAddress}) => {
     if (streetAddress === "234 Main Street") {
-      return { latitude: 0, longitude: 0 };
+      return { result: { latitude: 0, longitude: 0 } };
     } else if (streetAddress === "345 Main Street") {
       throw new Error("geocode error");
     }
@@ -113,7 +113,9 @@ vi.mock("../../src/services/geolocation_service", () => ({
 describe("LocationsController", () => {
   describe("getAllLocations", () => {
     it("should return an array of locations", async () => {
-      const expected = { result: mockLocations } as locationsController.LocationControllerReply;
+      const expected = {
+        result: mockLocations,
+      } as locationsController.LocationControllerReply;
       const actual = await locationsController.getAllLocations();
 
       expect(expected).toEqual(actual);
@@ -125,7 +127,9 @@ describe("LocationsController", () => {
       const req = getMockReq({ params: { locationId: "123456" } });
       const res = getMockRes().res;
 
-      const expected = { result: mockLocations[0] } as locationsController.LocationControllerReply;
+      const expected = {
+        result: mockLocations[0],
+      } as locationsController.LocationControllerReply;
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await locationsController.getLocation(req, res);
 
@@ -136,7 +140,9 @@ describe("LocationsController", () => {
       const req = getMockReq({ params: { locationId: "345678" } });
       const res = getMockRes().res;
 
-      const expected = { result: null } as locationsController.LocationControllerReply;
+      const expected = {
+        result: null,
+      } as locationsController.LocationControllerReply;
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await locationsController.getLocation(req, res);
 
@@ -156,7 +162,9 @@ describe("LocationsController", () => {
 
   describe("getNearbyLocations", () => {
     it("should return an array of nearby locations", async () => {
-      const expected = { result: mockLocations[0] } as locationsController.LocationControllerReply;
+      const expected = {
+        result: mockLocations[0],
+      } as locationsController.LocationControllerReply;
       const req = getMockReq({
         query: {
           latitude: "47",
@@ -175,7 +183,9 @@ describe("LocationsController", () => {
     });
 
     it("should return an empty array", async () => {
-      const expected = { result: [] } as locationsController.LocationControllerReply;
+      const expected = {
+        result: [],
+      } as locationsController.LocationControllerReply;
       const req = getMockReq({
         query: {
           latitude: "48",
@@ -223,7 +233,9 @@ describe("LocationsController", () => {
 
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await locationsController.addLocation(req, res);
-      const expected = { result: "locationId"} as locationsController.LocationControllerReply;
+      const expected = {
+        result: "locationId",
+      } as locationsController.LocationControllerReply;
 
       expect(actual).toEqual(expected);
     });

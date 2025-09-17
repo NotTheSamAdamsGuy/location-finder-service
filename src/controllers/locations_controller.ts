@@ -95,17 +95,18 @@ export const addLocation = async (req: Request, res: Response) => {
   };
 
   try {
-    coordinates = await geolocationService.getCoordinates({
+    const geoServiceReply = await geolocationService.getCoordinates({
       streetAddress: streetAddress,
       city: city,
       state: state,
       zip: zip,
     });
+    coordinates = geoServiceReply.result;
   } catch (err: any) {
     throw new Error("Unable to fetch coordinates data", err);
   }
   
-  const data = await locationsService.addLocation({
+  const locationServiceReply = await locationsService.addLocation({
     name: name,
     streetAddress: streetAddress,
     city: city,
@@ -117,5 +118,5 @@ export const addLocation = async (req: Request, res: Response) => {
     tags: tags,
   });
 
-  return { result: data.result } as LocationControllerReply;
+  return { result: locationServiceReply.result } as LocationControllerReply;
 };

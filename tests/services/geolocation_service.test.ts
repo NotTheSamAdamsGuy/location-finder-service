@@ -72,12 +72,13 @@ vi.mock("../../src/daos/geolocation_dao", () => ({
 describe("GeolocationService - ", () => {
   describe("getCoordinates", () => {
     it("should return a set of coordinates on success", async () => {
-      const coordinates: Coordinates = await service.getCoordinates({
+      const reply = await service.getCoordinates({
         streetAddress: "123 Main St.",
         city: "Anytown",
         state: "US",
         zip: "12345",
       });
+      const coordinates = reply.result;
 
       expect(coordinates).toEqual({
         latitude: 30,
@@ -97,7 +98,7 @@ describe("GeolocationService - ", () => {
     });
   });
 
-  describe("getAddress", () => {
+  describe("getAddressNew", () => {
     it("should return an address when given coordinates", async () => {
       const expectedAddress = {
         streetAddress: "565 Ward Place",
@@ -109,7 +110,8 @@ describe("GeolocationService - ", () => {
         longitude: -122.3453729,
         latitude: 47.6276307,
       };
-      const actualAddress = await service.getAddress(coordinates);
+      const reply = await service.getAddress(coordinates);
+      const actualAddress = reply.result;
       expect(expectedAddress).toEqual(actualAddress);
     });
 

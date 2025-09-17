@@ -1,5 +1,5 @@
 import * as geolocationDao from "../daos/geolocation_dao.ts";
-import { Address, Coordinates } from "../types.ts";
+import { Address, Coordinates, ServiceReply } from "../types.ts";
 import { logger } from "../logging/logger.ts";
 
 type GeolocationInputs = {
@@ -9,16 +9,21 @@ type GeolocationInputs = {
   zip: string;
 };
 
+type GeolocationServiceReply = ServiceReply & {
+  result: Coordinates;
+};
+
 /**
  * Get geolocation data for a given string.
  * @param {string} locationText - a string representing a location's address or other search criteria
- * @returns a Promise, resolving to a Coordinates object.
+ * @returns {Promise<GeolocationServiceReply>} a Promise, resolving to a GeolocationServiceReply object.
  */
 export const getGeolocation = async (
   locationText: string
-): Promise<Coordinates> => {
+): Promise<GeolocationServiceReply> => {
   try {
-    return await geolocationDao.geocodeLocation(locationText);
+    const coords = await geolocationDao.geocodeLocation(locationText);
+    return { success: true, result: coords };
   } catch (err) {
     logger.error("Unable to get geocode data for location", err);
     throw new Error("Unable to get geocode data for location.");
@@ -28,23 +33,24 @@ export const getGeolocation = async (
 /**
  * Get latitude/longitude coordinates for a given address.
  * @param {GeolocationInputs} props - an object containing inputs used to search for a geolocation
- * @returns a Promise, resolving to a Coordinates object.
+ * @returns {Promise<GeolocationServiceReply>} a Promise, resolving to a GeolocationServiceReply object.
  */
 export const getCoordinates = async ({
   streetAddress,
   city,
   state,
   zip,
-}: GeolocationInputs): Promise<Coordinates> => {
+}: GeolocationInputs): Promise<GeolocationServiceReply> => {
   let coordinates: Coordinates = {
     latitude: -1,
     longitude: -1,
   };
 
   try {
-    const geolocation = await getGeolocation(
+    const geoReply = await getGeolocation(
       `${streetAddress} ${city}, ${state} ${zip}`
     );
+    const geolocation = geoReply.result;
 
     if (geolocation) {
       coordinates.latitude = geolocation.latitude;
@@ -60,7 +66,7 @@ export const getCoordinates = async ({
     throw new Error("Unable to get coordinates for location.");
   }
 
-  return coordinates;
+  return {success: true, result: coordinates};
 };
 
 /**
@@ -68,9 +74,13 @@ export const getCoordinates = async ({
  * @param {Coordinates} props - an object containing latitude and longitude values
  * @returns a Promise, resolving to an Address object.
  */
+export type GeolocationServiceAddressReply = ServiceReply & {
+  result: Address;
+}
+
 export const getAddress = async (
   coordinates: Coordinates
-): Promise<Address> => {
+): Promise<GeolocationServiceAddressReply> => {
   const { latitude, longitude } = coordinates;
   let address: Address = {
     streetAddress: "",
@@ -80,18 +90,18 @@ export const getAddress = async (
   };
 
   try {
-    const data = await geolocationDao.reverseGeocodeLocation(
+    const daoReply = await geolocationDao.reverseGeocodeLocation(
       latitude,
       longitude
     );
-    const context = data.features[0].properties.context;
+    const context = daoReply.features[0].properties.context;
 
     address.streetAddress = context.address.name;
     address.city = context.place.name;
     address.state = context.region.region_code;
     address.zip = context.postcode.name;
 
-    return address;
+    return { success: true, result: address };
   } catch (err) {
     logger.error("Unable to get address data for coordinates", err);
     throw new Error("Unable to get address data for coordinates.");
