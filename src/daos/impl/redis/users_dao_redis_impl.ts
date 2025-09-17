@@ -30,8 +30,9 @@ const remap = (userHash: Record<string, any>): User => {
 export const findByUsername = async (username: string): Promise<User | null> => {
   const client = await redis.getClient();
   const userHashKey = keyGenerator.getUserHashKey(username);
-
   const userHash = await client.HGETALL(userHashKey);
+
+  await client.close();
 
   return Object.entries(userHash).length === 0 ? null : remap(userHash);
 };
