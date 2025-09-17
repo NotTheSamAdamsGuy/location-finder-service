@@ -1,9 +1,8 @@
 import * as tagsDao from "../daos/tags_dao.ts";
 import { logger } from "../logging/logger.ts";
+import { ServiceReply } from "../types.ts";
 
-export type TagsServiceReply = {
-  success: boolean;
-  message?: string;
+export type TagsServiceReply = ServiceReply & {
   result?: string | string[] | null;
 };
 

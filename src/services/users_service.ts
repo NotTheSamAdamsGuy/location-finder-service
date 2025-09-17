@@ -1,5 +1,5 @@
 import * as usersDao from "../daos/users_dao.ts";
-import { User, UserProfile } from "../types.ts";
+import { User, UserProfile, ServiceReply } from "../types.ts";
 
 /**
  * Gets the user data for the user with the matching username value.
@@ -16,9 +16,7 @@ export const getUserByUsername = async (
   }
 };
 
-export type UserProfileServiceReply = {
-  success: boolean;
-  message?: string;
+export type UserProfileServiceReply = ServiceReply & {
   result: UserProfile | null;
 }
 

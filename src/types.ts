@@ -78,3 +78,9 @@ export type SessionPayload = {
   username: string;
   role: string;
 };
+
+export type ServiceReply = {
+  success: boolean;
+  message?: string;
+  result: any;
+}
