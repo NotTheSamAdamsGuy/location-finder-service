@@ -22,7 +22,7 @@ vi.mock("../../src/services/users_service", () => ({
 vi.mock("../../src/services/authentication_service", () => ({
   generateToken: vi.fn((username, role) => {
     if (username === "testuser") {
-      return "thisisatoken"
+      return { success: true, result: "thisisatoken" };
     } else {
       return new Error("error");
     }
@@ -36,7 +36,8 @@ describe("AuthenticationController", () => {
       const res = getMockRes().res;
 
       // @ts-ignore -- ignore the type comparison error with req and res mocks
-      const actual = await authenticationController.generateToken(req, res);
+      const reply = await authenticationController.generateToken(req, res);
+      const actual = reply.result;
       const expected = "thisisatoken";
 
       expect(actual).toEqual(expected);

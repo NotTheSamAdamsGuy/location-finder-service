@@ -2,9 +2,13 @@ import { Request, Response } from "express";
 
 import * as authenticationService from "../services/authentication_service.ts";
 import * as usersService from "../services/users_service.ts";
-import { User } from "../types.ts";
+import { ControllerReply, User } from "../types.ts";
 
-export const generateToken = async (req: Request, res: Response) => {
+type AuthenticationControllerReply = ControllerReply & {
+  result: string;
+}
+
+export const generateToken = async (req: Request, res: Response): Promise<AuthenticationControllerReply> => {
   const {username, password} = req.body;
   const user: User | null = await usersService.getUserByUsername(username);
   
@@ -12,5 +16,8 @@ export const generateToken = async (req: Request, res: Response) => {
     throw new Error("Invalid credentials");
   }
 
-  return authenticationService.generateToken(username, user.role);
+  const reply = await authenticationService.generateToken(username, user.role);
+  const token = reply.result;
+
+  return { result: token };
 }

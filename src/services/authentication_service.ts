@@ -1,8 +1,12 @@
 import * as usersService from "../services/users_service.ts";
 import { SignJWT, jwtVerify } from "jose";
 
-import { User, SessionPayload } from "../types.ts";
+import { User, SessionPayload, ServiceReply } from "../types.ts";
 import { config } from "../../config.ts";
+
+type AuthenticationServiceReply = ServiceReply & {
+  result: string;
+}
 
 const secretKey = config.secrets.jwtSecretKey;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -13,7 +17,7 @@ const encodedKey = new TextEncoder().encode(secretKey);
  * @param {string} role - a role string
  * @returns {string} - a JWT token string
  */
-export const generateToken = async (username: string, role: string) => {
+export const generateToken = async (username: string, role: string): Promise<AuthenticationServiceReply> => {
   const user: User | null = await usersService.getUserByUsername(username);
 
   if (user) {
@@ -22,7 +26,9 @@ export const generateToken = async (username: string, role: string) => {
       role: role,
     };
 
-    return encrypt(payload);
+    const token = await encrypt(payload);
+
+    return { success: true, result: token };
   } else {
     throw new Error("Invalid user");
   }
