@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 
 import * as userService from "../services/users_service.ts";
-import { logger } from "../logging/logger.ts";
 import { ControllerReply, UserProfile } from "../types.ts";
 
 type UserProfileControllerReply = ControllerReply & {
