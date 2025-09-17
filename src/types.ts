@@ -82,5 +82,10 @@ export type SessionPayload = {
 export type ServiceReply = {
   success: boolean;
   message?: string;
-  result: any;
+  result: unknown;
+};
+
+export type ControllerReply = {
+  message?: string;
+  result?: unknown;
 }

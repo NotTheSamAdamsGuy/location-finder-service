@@ -2,22 +2,21 @@ import { Request, Response } from "express";
 
 import * as locationsService from "../services/locations_service.ts";
 import * as geolocationService from "../services/geolocation_service.ts";
-import { Coordinates, Image } from "../types.ts";
+import { Coordinates, Image, ControllerReply } from "../types.ts";
 
-export type LocationControllerResult = {
+export type LocationControllerReply = ControllerReply & {
   result?: Location | Location[] | string | null;
-  message?: string;
 };
 
 export const getAllLocations = async () => {
   const data = await locationsService.getAllLocations();
-  return { result: data.result };
+  return { result: data.result } as LocationControllerReply;
 };
 
 export const getLocation = async (req: Request, res: Response) => {
   const locationId = req.params.locationId;
   const data = await locationsService.getLocation(locationId);
-  return { result: data.result };
+  return { result: data.result } as LocationControllerReply;
 };
 
 export const getNearbyLocations = async (req: Request, res: Response) => {
@@ -35,7 +34,7 @@ export const getNearbyLocations = async (req: Request, res: Response) => {
     sort,
   });
 
-  return { result: data.result };
+  return { result: data.result } as LocationControllerReply
 };
 
 export const addLocation = async (req: Request, res: Response) => {
@@ -105,8 +104,8 @@ export const addLocation = async (req: Request, res: Response) => {
   } catch (err: any) {
     throw new Error("Unable to fetch coordinates data", err);
   }
-
-  return await locationsService.addLocation({
+  
+  const data = await locationsService.addLocation({
     name: name,
     streetAddress: streetAddress,
     city: city,
@@ -117,4 +116,6 @@ export const addLocation = async (req: Request, res: Response) => {
     coordinates: coordinates,
     tags: tags,
   });
+
+  return { result: data.result } as LocationControllerReply;
 };

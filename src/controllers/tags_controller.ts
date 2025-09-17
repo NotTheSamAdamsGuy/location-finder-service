@@ -1,17 +1,17 @@
 import { Request, Response } from "express";
 import { logger } from "../logging/logger.ts";
 import * as TagsService from "../services/tags_service.ts";
+import { ControllerReply } from "../types.ts";
 
-export type TagsControllerResult = {
+export type TagsControllerReply = ControllerReply & {
   result?: string | string[] | null;
-  message?: string;
 };
 
 /**
  * Get all the tags in the database
  * @returns an array containing TagsServiceReply objects
  */
-export const getAllTags = async (): Promise<TagsControllerResult> => {
+export const getAllTags = async (): Promise<TagsControllerReply> => {
   try {
     const data = await TagsService.getAllTags();
     return { result: data.result };
@@ -28,7 +28,7 @@ export const getAllTags = async (): Promise<TagsControllerResult> => {
 export const getTag = async (
   req: Request,
   res: Response
-): Promise<TagsControllerResult> => {
+): Promise<TagsControllerReply> => {
   try {
     const tag = req.params.tag;
     const data = await TagsService.getTag(tag);
@@ -48,7 +48,7 @@ export const getTag = async (
 export const addTag = async (
   req: Request,
   res: Response
-): Promise<TagsControllerResult> => {
+): Promise<TagsControllerReply> => {
   const tag = req.body.tag;
 
   try {
@@ -69,7 +69,7 @@ export const addTag = async (
 export const updateTag = async (
   req: Request,
   res: Response
-): Promise<TagsControllerResult> => {
+): Promise<TagsControllerReply> => {
   const currentTag = req.body.currentTag;
   const newTag = req.body.newTag;
 
@@ -91,7 +91,7 @@ export const updateTag = async (
 export const removeTag = async (
   req: Request,
   res: Response
-): Promise<TagsControllerResult> => {
+): Promise<TagsControllerReply> => {
   const tagToRemove = req.params.tag;
 
   try {

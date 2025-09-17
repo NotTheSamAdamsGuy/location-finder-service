@@ -18,7 +18,7 @@ export const getUserByUsername = async (
 
 export type UserProfileServiceReply = ServiceReply & {
   result: UserProfile | null;
-}
+};
 
 /**
  * Gets the user profile for the user with the matching username value.
@@ -34,7 +34,7 @@ export const getUserProfile = async (
       const profile: UserProfile = {
         username: user.username,
         firstName: user.firstName ?? "",
-        lastName: user.lastName ?? ""
+        lastName: user.lastName ?? "",
       };
 
       return { success: true, result: profile };
