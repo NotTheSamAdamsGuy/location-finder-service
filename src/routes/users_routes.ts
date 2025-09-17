@@ -11,7 +11,8 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const profile = await usersController.getUserProfile(req, res);
+      const data = await usersController.getUserProfile(req, res);
+      const profile = data.result;
 
       if (profile) {
         return res.status(200).json(profile);

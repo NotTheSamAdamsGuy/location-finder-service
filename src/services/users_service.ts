@@ -16,6 +16,12 @@ export const getUserByUsername = async (
   }
 };
 
+export type UserProfileServiceReply = {
+  success: boolean;
+  message?: string;
+  result: UserProfile | null;
+}
+
 /**
  * Gets the user profile for the user with the matching username value.
  * @param {string} username - a username string
@@ -23,18 +29,20 @@ export const getUserByUsername = async (
  */
 export const getUserProfile = async (
   username: string
-): Promise<UserProfile | null> => {
+): Promise<UserProfileServiceReply> => {
   try {
     const user = await usersDao.findByUsername(username);
     if (user) {
-      return {
-        username: user.username as string,
-        firstName: user.firstName as string,
-        lastName: user.lastName as string,
+      const profile: UserProfile = {
+        username: user.username,
+        firstName: user.firstName ?? "",
+        lastName: user.lastName ?? ""
       };
+
+      return { success: true, result: profile };
     }
 
-    return null;
+    return { success: true, result: null };
   } catch (err: any) {
     throw new Error("Unable to fetch profile data", err);
   }

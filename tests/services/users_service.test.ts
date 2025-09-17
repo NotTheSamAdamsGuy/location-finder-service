@@ -49,12 +49,14 @@ describe("UsersService", () => {
   }),
     describe("getUserProfile", () => {
       it("should return a UserProfile object if the user exists", async () => {
-        const userProfile = await service.getUserProfile("testuser");
+        const data = await service.getUserProfile("testuser");
+        const userProfile = data.result;
         expect(userProfile).toEqual(mockUserProfile);
       });
 
       it("should return a null value if the user does not exist", async () => {
-        const userProfile = await service.getUserProfile("joeyjoejoeshabadoo");
+        const data = await service.getUserProfile("joeyjoejoeshabadoo");
+        const userProfile = data.result;
         expect(userProfile).toBe(null);
       });
 
