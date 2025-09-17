@@ -2,15 +2,32 @@ import { Request, Response } from "express";
 
 import * as authenticationService from "../services/authentication_service.ts";
 import * as usersService from "../services/users_service.ts";
-import { User } from "../types.ts";
+import { ControllerReply } from "../types.ts";
 
-export const generateToken = async (req: Request, res: Response) => {
-  const {username, password} = req.body;
-  const user: User | null = await usersService.getUserByUsername(username);
-  
-  if (user === null || (user.username !== username || user.password !== password)) {
+type AuthenticationControllerReply = ControllerReply & {
+  result: string;
+};
+
+export const generateToken = async (
+  req: Request,
+  res: Response
+): Promise<AuthenticationControllerReply> => {
+  const { username, password } = req.body;
+  const userServiceReply: usersService.UserServiceReply = await usersService.getUser(
+    username
+  );
+  const user = userServiceReply.result;
+
+  if (
+    user === null ||
+    user.username !== username ||
+    user.password !== password
+  ) {
     throw new Error("Invalid credentials");
   }
 
-  return authenticationService.generateToken(username, user.role);
-}
+  const authServiceReply = await authenticationService.generateToken(username, user.role);
+  const token = authServiceReply.result;
+
+  return { result: token };
+};

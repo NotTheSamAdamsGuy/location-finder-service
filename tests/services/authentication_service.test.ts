@@ -6,7 +6,7 @@ import { User } from "../../src/types";
 import { config } from "../../config";
 
 vi.mock("../../src/services/users_service", () => ({
-  getUserByUsername: (username: string) => {
+  getUser: (username: string) => {
     if (username === "testuser") {
       const user: User = {
         username: "testuser",
@@ -17,7 +17,7 @@ vi.mock("../../src/services/users_service", () => ({
         lastLoginTimestamp: undefined,
       };
 
-      return user;
+      return { success: true, result: user };
     } else {
       return null;
     }
@@ -27,7 +27,9 @@ vi.mock("../../src/services/users_service", () => ({
 describe("AuthenticationService", () => {
   describe("generateToken", () => {
     it("should return a token for a valid user", async () => {
-      const token = await generateToken("testuser", "USER");
+      const reply = await generateToken("testuser", "USER");
+      const token = reply.result;
+      
       expect(token).not.toBe(null);
 
       const secretKey = config.secrets.jwtSecretKey;

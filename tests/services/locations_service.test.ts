@@ -111,7 +111,8 @@ vi.mock("../../src/daos/location_dao", () => ({
 describe("LocationsService", () => {
   describe("getLocation", () => {
     it("should return a Location object on success", async () => {
-      const location = await ls.getLocation("123456");
+      const data = await ls.getLocation("123456");
+      const location = data.result;
       expect(location).toEqual(mockLocations[0]);
     });
 
@@ -124,8 +125,9 @@ describe("LocationsService", () => {
 
   describe("getAllLocations", () => {
     it("should return an array of Location objects on success", async () => {
-      const locations = await ls.getAllLocations();
-      expect(locations.length).toBe(2);
+      const data = await ls.getAllLocations();
+      const locations = data.result as Location[];
+      expect(locations!.length).toBe(2);
       expect(locations).toEqual(mockLocations);
     });
   });
@@ -140,7 +142,8 @@ describe("LocationsService", () => {
         sort: "ASC",
       };
 
-      const locations = await ls.getNearbyLocations(nearbyLocationsParams);
+      const data = await ls.getNearbyLocations(nearbyLocationsParams);
+      const locations = data.result as Location[];
 
       expect(locations.length).toBe(1);
       expect(locations[0]).toEqual(mockLocations[0]);
@@ -178,7 +181,9 @@ describe("LocationsService", () => {
         tags: ["tag1", "tag2"]
       };
 
-      const locationHashKey: string = await ls.addLocation(location);
+      const data = await ls.addLocation(location);
+      const locationHashKey = data.result;
+      
       expect(locationHashKey).toEqual("hashkey");
     });
 

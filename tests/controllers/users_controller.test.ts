@@ -13,11 +13,11 @@ vi.mock("../../src/services/users_service", () => ({
         firstName: "Test",
         lastName: "User",
       };
-      return profile;
+      return { success: true, result: profile };
     } else if (username === "bobbydroptables") {
       throw new Error("error");
     } else {
-      return null;
+      return { success: true, result: null };
     }
   }),
 }));
@@ -25,11 +25,12 @@ vi.mock("../../src/services/users_service", () => ({
 describe("UsersController", () => {
   describe("getUserProfile", () => {
     it("should return a user's profile", async () => {
-      const expected: UserProfile = {
+      const profile: UserProfile = {
         username: "testuser",
         firstName: "Test",
         lastName: "User",
       };
+      const expected = { result: profile };
 
       const req = getMockReq({ params: { username: "testuser" } });
       const res = getMockRes().res;
@@ -40,7 +41,8 @@ describe("UsersController", () => {
     });
 
     it("should return a null value", async () => {
-      const expected = null;
+      const profile = null;
+      const expected = { result: profile };
 
       const req = getMockReq({ params: { username: "nonexistent" } });
       const res = getMockRes().res;

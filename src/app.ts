@@ -24,7 +24,8 @@ passport.use(
   new BearerStrategy.Strategy(async function (token, done) {
     try {
       const payload = await decrypt(token);
-      const user = await usersService.getUserByUsername(payload?.username as string);
+      const userServiceReply = await usersService.getUser(payload?.username as string);
+      const user = userServiceReply.result;
 
       if (!user) {
         return done(null, false); // No user found with this token
@@ -77,4 +78,8 @@ app.use(errorHandler); // this should come after all other app.use instances
 
 app.listen(port, () => {
   logger.info(`App listening on http://${host}:${port}`);
+});
+
+process.on('uncaughtException', (err) => {
+  console.log('uncaught exception');
 });

@@ -18,7 +18,8 @@ router.post(
     }
 
     try {
-      const token = await authenticationController.generateToken(req, res);
+      const reply = await authenticationController.generateToken(req, res);
+      const token = reply.result;
       return res.json({ token: token });
     } catch (err) {
       const httpErr = err as Error;

@@ -17,7 +17,8 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const locations = await locationsController.getAllLocations();
+      const data = await locationsController.getAllLocations();
+      const locations = data.result;
       return locations ? res.status(200).json(locations) : res.sendStatus(404);
     } catch (err) {
       return next(err);
@@ -41,7 +42,8 @@ router.get(
     }
 
     try {
-      const locations = await locationsController.getNearbyLocations(req, res);
+      const data = await locationsController.getNearbyLocations(req, res);
+      const locations = data.result;
       return res.status(200).json(locations);
     } catch (err) {
       return next(err);
@@ -55,7 +57,8 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const location = await locationsController.getLocation(req, res);
+      const data = await locationsController.getLocation(req, res);
+      const location = data.result;
       return location ? res.status(200).json(location) : res.sendStatus(404);
     } catch (err) {
       return next(err);
@@ -96,7 +99,8 @@ router.post(
     }
 
     try {
-      const locationKey = await locationsController.postLocation(req, res);
+      const data = await locationsController.addLocation(req, res);
+      const locationKey = data.result;
       return res.status(200).json(locationKey);
     } catch (err) {
       return next(err);

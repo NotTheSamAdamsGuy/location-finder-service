@@ -11,13 +11,12 @@ const mockAddress: Address = {
   zip: "12345",
 };
 
-// vi.mock("../../src/services/geolocation_service", () => ({
 vi.mock("../../src/services/geolocation_service", () => ({
   getAddress: vi.fn((params) => {
     const { latitude } = params;
 
     if (latitude === 47) {
-      return mockAddress;
+      return {success: true, result: mockAddress };
     } else {
       throw new Error("error");
     }
@@ -34,7 +33,7 @@ describe("GeolocationController", () => {
         },
       });
       const res = getMockRes().res;
-      const expected = mockAddress;
+      const expected = { result: mockAddress };
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await geolocationController.getAddress(req, res);
 
