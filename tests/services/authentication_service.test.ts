@@ -6,7 +6,7 @@ import { User } from "../../src/types";
 import { config } from "../../config";
 
 vi.mock("../../src/services/users_service", () => ({
-  getUserByUsername: (username: string) => {
+  getUser: (username: string) => {
     if (username === "testuser") {
       const user: User = {
         username: "testuser",
@@ -17,7 +17,7 @@ vi.mock("../../src/services/users_service", () => ({
         lastLoginTimestamp: undefined,
       };
 
-      return user;
+      return { success: true, result: user };
     } else {
       return null;
     }

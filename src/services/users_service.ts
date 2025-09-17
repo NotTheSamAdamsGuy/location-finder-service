@@ -1,16 +1,20 @@
 import * as usersDao from "../daos/users_dao.ts";
 import { User, UserProfile, ServiceReply } from "../types.ts";
 
+
+export type UserServiceReply = ServiceReply & {
+  result: User | null;
+};
+
 /**
  * Gets the user data for the user with the matching username value.
  * @param {string} username - a username string
  * @returns {User} a Promise, resolving to User object if the user exists, otherwise null
  */
-export const getUserByUsername = async (
-  username: string
-): Promise<User | null> => {
+export const getUser = async (username: string): Promise<UserServiceReply> => {
   try {
-    return usersDao.findByUsername(username);
+    const user = await usersDao.findByUsername(username);
+    return {success: true, result: user};
   } catch (err: any) {
     throw new Error("Unable to fetch user data.", err);
   }

@@ -4,15 +4,16 @@ import { getMockReq, getMockRes } from "vitest-mock-express";
 import * as authenticationController from "../../src/controllers/authentication_controller";
 
 vi.mock("../../src/services/users_service", () => ({
-  getUserByUsername: vi.fn((username) => {
+  getUser: vi.fn((username) => {
     if (username === "testuser") {
-      return {
+      const user = {
         username: "testuser",
         password: "password",
         firstName: "test",
         lastName: "user",
         role: "USER"
-      }
+      };
+      return { success: true, result: user };
     } else {
       return new Error("error");
     }

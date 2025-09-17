@@ -30,20 +30,22 @@ vi.mock("../../src/daos/users_dao", () => ({
 }));
 
 describe("UsersService", () => {
-  describe("getUserByUsername", () => {
+  describe("getUser", () => {
     it("should return a user object if the user exists", async () => {
-      const user = await service.getUserByUsername("testuser");
+      const reply = await service.getUser("testuser");
+      const user = reply.result;
       expect(user).toEqual(mockUser);
     });
 
     it("should return a null value if the user does not exist", async () => {
-      const user = await service.getUserByUsername("joeyjoejoeshabadoo");
+      const reply = await service.getUser("joeyjoejoeshabadoo");
+      const user = reply.result;
       expect(user).toBe(null);
     });
 
     it("should throw an error if an issue occurred while retrieving user data", async () => {
       await expect(
-        service.getUserByUsername("bobbydroptables")
+        service.getUser("bobbydroptables")
       ).rejects.toThrowError("Unable to fetch user data.");
     });
   }),

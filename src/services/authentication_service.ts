@@ -18,7 +18,8 @@ const encodedKey = new TextEncoder().encode(secretKey);
  * @returns {string} - a JWT token string
  */
 export const generateToken = async (username: string, role: string): Promise<AuthenticationServiceReply> => {
-  const user: User | null = await usersService.getUserByUsername(username);
+  const userServiceReply = await usersService.getUser(username);
+  const user = userServiceReply.result;
 
   if (user) {
     const payload: SessionPayload = {
