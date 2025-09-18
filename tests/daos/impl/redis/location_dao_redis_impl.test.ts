@@ -131,6 +131,9 @@ const mockClient = {
   },
   GEOADD: () => {
     return Promise.resolve(1);
+  },
+  close: () => {
+    return;
   }
 };
 

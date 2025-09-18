@@ -18,7 +18,18 @@ const mockClient = {
     } else {
       return Promise.resolve([]);
     }
-  } 
+  },
+  HSET: (hashkey: string, user: User) => {
+    if (hashkey === "test:users:info:new_testuser") {
+      return "test:users:info:new_testuser";
+    }
+  },
+  SADD: () => {
+    return Promise.resolve(1);
+  },
+  close: () => {
+    return;
+  }
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -42,6 +53,24 @@ describe("User DAO - Redis", () => {
     it("returns a null value if a user does not exist", async () => {
       const user = await userDao.findByUsername("joeyjoejoeshabadoo");
       expect(user).toBe(null);
+    });
+  });
+
+  describe("insert", () => {
+    it("returns a number representing the number of fields added", async () => {
+      const user: User = {
+        username: "new_testuser",
+        password: "password",
+        firstName: "NewTest",
+        lastName: "User",
+        role: "USER",
+        lastLoginTimestamp: 12345
+      }
+
+      const actual = await userDao.insert(user);
+      const expected = "test:users:info:new_testuser"
+      
+      expect(actual).toEqual(expected);
     });
   });
 });

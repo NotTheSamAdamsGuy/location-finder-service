@@ -20,6 +20,10 @@ test(`${testSuiteName}: getUserHashKey`, () => {
   expect(keyGenerator.getUserHashKey("test")).toBe(`${expectedKeyPrefix}:users:info:test`);
 });
 
+test(`${testSuiteName}: getUserIDsKey`, () => {
+  expect(keyGenerator.getUserIDsKey()).toBe(`${expectedKeyPrefix}:users:ids`);
+});
+
 test(`${testSuiteName}: getTagsKey`, () => {
   expect(keyGenerator.getTagsKey()).toBe(`${expectedKeyPrefix}:tags`);
 });

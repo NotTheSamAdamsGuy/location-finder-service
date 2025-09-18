@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import { body, validationResult } from "express-validator";
 
 import * as authenticationController from "../controllers/authentication_controller.ts";
+import { comparePassword } from "../middleware/auth.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -10,6 +11,7 @@ router.post(
   "/login",
   body("username").notEmpty(),
   body("password").notEmpty(),
+  comparePassword,
   async (req: Request, res: Response, next) => {
     const error = validationResult(req);
 

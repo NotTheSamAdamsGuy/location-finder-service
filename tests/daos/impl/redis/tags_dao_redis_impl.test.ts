@@ -42,6 +42,9 @@ const mockClient = {
       execAsPipeline: () => {
         return Promise.resolve([first, second]);
       },
+      close: () => {
+        return;
+      }
     }
   },
   close: () => {

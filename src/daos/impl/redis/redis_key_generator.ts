@@ -58,6 +58,16 @@ export const getLocationIDsKey = () => getKey('locations:ids');
 export const getUserHashKey = (username: string) => getKey(`users:info:${username}`);
 
 /**
+ * Returns the Redis key name used for the set storing all user IDs.
+ *
+ * Key name: prefix:users:ids
+ * Redis type stored at this key: set
+ *
+ * @returns - the Redis key name used for the set storing all user IDs.
+ */
+export const getUserIDsKey = () => getKey('users:ids');
+
+/**
  * Returns the Redis key used to store tag information
  *
  * Key name: prefix:tags
