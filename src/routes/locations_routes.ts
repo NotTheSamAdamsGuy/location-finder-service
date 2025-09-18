@@ -5,6 +5,7 @@ import passport from "passport";
 
 import * as locationsController from "../controllers/locations_controller.ts";
 import * as multerUtils from "../utils/multer_utils.ts";
+import { checkIfAdmin } from "../middleware/auth.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -82,6 +83,7 @@ const upload = multer({
 router.post(
   "/",
   passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
   upload.array("images"),
   body("name").notEmpty(),
   body("streetAddress").notEmpty(),

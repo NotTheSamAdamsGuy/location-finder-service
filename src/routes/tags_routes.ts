@@ -3,6 +3,7 @@ import passport from "passport";
 import { body, param, validationResult } from "express-validator";
 
 import * as tagsController from "../controllers/tags_controller.ts";
+import { checkIfAdmin } from "../middleware/auth.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -38,6 +39,7 @@ router.get(
 router.post(
   "/",
   passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
   body("tag").notEmpty(),
   async (req: Request, res: Response, next: NextFunction) => {
     const error = validationResult(req);
@@ -58,6 +60,7 @@ router.post(
 router.put(
   "/",
   passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
   body("currentTag").notEmpty(),
   body("newTag").notEmpty(),
   async (req: Request, res: Response, next: NextFunction) => {
@@ -87,6 +90,7 @@ router.put(
 router.delete(
   "/:tag",
   passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
   param("tag").notEmpty(),
   async (req: Request, res: Response, next: NextFunction) => {
     const error = validationResult(req);
