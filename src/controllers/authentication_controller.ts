@@ -12,21 +12,18 @@ export const generateToken = async (
   req: Request,
   res: Response
 ): Promise<AuthenticationControllerReply> => {
-  const { username, password } = req.body;
-  const userServiceReply: usersService.UserServiceReply = await usersService.getUser(
-    username
-  );
+  const { username } = req.body;
+  const userServiceReply = await usersService.getUser(username);
   const user = userServiceReply.result;
 
-  if (
-    user === null ||
-    user.username !== username ||
-    user.password !== password
-  ) {
+  if (user === null || user.username !== username) {
     throw new Error("Invalid credentials");
   }
 
-  const authServiceReply = await authenticationService.generateToken(username, user.role);
+  const authServiceReply = await authenticationService.generateToken(
+    username,
+    user.role
+  );
   const token = authServiceReply.result;
 
   return { result: token };

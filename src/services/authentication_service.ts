@@ -1,12 +1,13 @@
 import * as usersService from "../services/users_service.ts";
 import { SignJWT, jwtVerify } from "jose";
 
-import { User, SessionPayload, ServiceReply } from "../types.ts";
+import { SessionPayload, ServiceReply } from "../types.ts";
 import { config } from "../../config.ts";
+import { logger } from "../logging/logger.ts";
 
 type AuthenticationServiceReply = ServiceReply & {
   result: string;
-}
+};
 
 const secretKey = config.secrets.jwtSecretKey;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -17,7 +18,10 @@ const encodedKey = new TextEncoder().encode(secretKey);
  * @param {string} role - a role string
  * @returns {string} - a JWT token string
  */
-export const generateToken = async (username: string, role: string): Promise<AuthenticationServiceReply> => {
+export const generateToken = async (
+  username: string,
+  role: string
+): Promise<AuthenticationServiceReply> => {
   const userServiceReply = await usersService.getUser(username);
   const user = userServiceReply.result;
 
@@ -35,7 +39,6 @@ export const generateToken = async (username: string, role: string): Promise<Aut
   }
 };
 
-
 export async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
@@ -51,6 +54,20 @@ export async function decrypt(session: string | undefined = "") {
     });
     return payload;
   } catch (error) {
-    console.log("Failed to verify session");
+    logger.error("Failed to verify session");
+  }
+}
+
+export async function getRole(session: string) {
+  try {
+    const payload = await decrypt(session);
+
+    if (payload) {
+      return payload.role;
+    } else {
+      throw new Error("Empty session payload");
+    }
+  } catch (err) {
+    logger.error(err);
   }
 }

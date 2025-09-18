@@ -61,11 +61,11 @@ export type AddLocationParams = {
 
 export type User = {
   username: string;
-  password: string | undefined;
+  password: string;
   firstName: string | undefined;
   lastName: string | undefined;
   role: "USER" | "ADMIN";
-  lastLoginTimestamp: number | undefined;
+  lastLoginTimestamp: number;
 };
 
 export type UserProfile = {

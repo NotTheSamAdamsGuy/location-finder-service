@@ -3,7 +3,6 @@ import { getMockReq, getMockRes } from "vitest-mock-express";
 
 import * as uc from "../../src/controllers/users_controller";
 import { UserProfile } from "../../src/types";
-import { Response } from "express";
 
 vi.mock("../../src/services/users_service", () => ({
   getUserProfile: vi.fn((username) => {
@@ -18,6 +17,11 @@ vi.mock("../../src/services/users_service", () => ({
       throw new Error("error");
     } else {
       return { success: true, result: null };
+    }
+  }),
+  createUser: vi.fn((username, password, firstName, lastName, role) => {
+    if (username === "testuser") {
+      return { success: true, result: "test:users:info:testuser" };
     }
   }),
 }));
@@ -58,6 +62,26 @@ describe("UsersController", () => {
 
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       await expect(uc.getUserProfile(req, res)).rejects.toThrowError();
+    });
+  });
+
+  describe("createUser", () => {
+    it("should return a user ID", async () => {
+      const req = getMockReq({
+        body: {
+          username: "testuser",
+          password: "password",
+          firstName: "Test",
+          lastName: "User",
+          role: "USER",
+        },
+      });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await uc.createUser(req, res);
+      const expected = { result: "test:users:info:testuser" };
+      expect(actual).toEqual(expected);
     });
   });
 });

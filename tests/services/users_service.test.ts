@@ -27,6 +27,9 @@ vi.mock("../../src/daos/users_dao", () => ({
       return null;
     }
   }),
+  insert: vi.fn((user) => {
+    return `test:users:info:${user.username}`;
+  }),
 }));
 
 describe("UsersService", () => {
@@ -44,9 +47,9 @@ describe("UsersService", () => {
     });
 
     it("should throw an error if an issue occurred while retrieving user data", async () => {
-      await expect(
-        service.getUser("bobbydroptables")
-      ).rejects.toThrowError("Unable to fetch user data.");
+      await expect(service.getUser("bobbydroptables")).rejects.toThrowError(
+        "Unable to fetch user data."
+      );
     });
   }),
     describe("getUserProfile", () => {
@@ -68,4 +71,36 @@ describe("UsersService", () => {
         ).rejects.toThrowError("Unable to fetch profile data");
       });
     });
+
+  describe("createUser", () => {
+    it("should return a database id", async () => {
+      const username = "testuser2";
+      const password = "password";
+      const firstName = "Test";
+      const lastName = "User";
+      const role = "USER";
+
+      const actual = await service.createUser(
+        username,
+        password,
+        firstName,
+        lastName,
+        role
+      );
+      const expected = { success: true, result: "test:users:info:testuser2" };
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error if the user already exists", async () => {
+      const username = "testuser";
+      const password = "password";
+      const firstName = "Test";
+      const lastName = "User";
+      const role = "USER";
+
+      await expect(
+        service.createUser(username, password, firstName, lastName, role)
+      ).rejects.toThrowError("Unable to create user: User already exists");
+    });
+  });
 });
