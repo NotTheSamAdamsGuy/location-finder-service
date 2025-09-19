@@ -6,6 +6,8 @@ import passport from "passport";
 import * as locationsController from "../controllers/locations_controller.ts";
 import * as multerUtils from "../utils/multer_utils.ts";
 import { checkIfAdmin } from "../middleware/auth.ts";
+import { BadRequestError, NotFoundError } from "../utils/errors.ts";
+import { sendSuccess } from "../middleware/responseHandler.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -20,7 +22,12 @@ router.get(
     try {
       const data = await locationsController.getAllLocations();
       const locations = data.result;
-      return locations ? res.status(200).json(locations) : res.sendStatus(404);
+
+      if (locations) {
+        sendSuccess(res, locations);
+      } else {
+        throw new BadRequestError("Cannot process request");
+      }
     } catch (err) {
       return next(err);
     }
@@ -45,7 +52,7 @@ router.get(
     try {
       const data = await locationsController.getNearbyLocations(req, res);
       const locations = data.result;
-      return res.status(200).json(locations);
+      sendSuccess(res, locations);
     } catch (err) {
       return next(err);
     }
@@ -60,7 +67,12 @@ router.get(
     try {
       const data = await locationsController.getLocation(req, res);
       const location = data.result;
-      return location ? res.status(200).json(location) : res.sendStatus(404);
+
+      if (location) {
+        sendSuccess(res, location);
+      } else {
+        throw new NotFoundError("Location not found");
+      }
     } catch (err) {
       return next(err);
     }
@@ -97,13 +109,13 @@ router.post(
     const error = validationResult(req);
 
     if (!error.isEmpty()) {
-      return res.status(400).json({ errors: error.array() });
+      throw new BadRequestError("Missing one or more required fields", error.array());
     }
 
     try {
       const data = await locationsController.addLocation(req, res);
       const locationKey = data.result;
-      return res.status(200).json(locationKey);
+      sendSuccess(res, locationKey);
     } catch (err) {
       return next(err);
     }
