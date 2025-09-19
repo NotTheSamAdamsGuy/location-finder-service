@@ -14,7 +14,7 @@ vi.mock("../../src/services/users_service", () => ({
         firstName: "Test",
         lastName: "User",
         role: "USER",
-        lastLoginTimestamp: undefined,
+        lastLoginTimestamp: 0,
       };
 
       return { success: true, result: user };
