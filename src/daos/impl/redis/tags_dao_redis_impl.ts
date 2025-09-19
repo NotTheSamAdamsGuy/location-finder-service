@@ -1,5 +1,6 @@
 import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
+import { DatabaseError } from "../../../utils/errors.ts";
 
 const tagsKey = keyGenerator.getTagsKey();
 
@@ -33,6 +34,14 @@ export const find = async (tagToFind: string): Promise<string | null> => {
  */
 export const insert = async (tag: string): Promise<number> => {
   const client = await redis.getClient();
+  
+  // check if tag already exists; if yes, throw an error
+  const isMember = Boolean(await client.SISMEMBER(tagsKey, tag));
+  if (isMember) {
+    await client.close();
+    throw new DatabaseError("Entry already exists");
+  }
+
   const result = await client.SADD(tagsKey, tag);
   await client.close();
   return result;

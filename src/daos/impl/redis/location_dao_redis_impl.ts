@@ -2,6 +2,7 @@ import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
 import { Image, Location } from "../../../types.ts";
 import { logger } from "../../../logging/logger.ts";
+import { DatabaseError } from "../../../utils/errors.ts";
 
 /**
  * Converts the image properties from a hash into an array of Image objects.
@@ -53,9 +54,9 @@ const convertImagePropertiesToImageArray = (
 };
 
 const convertTagMembersToArray = (data: Record<string, string>): string[] => {
-  return Object.entries(data).filter((entry) =>
-    entry[0].startsWith("tag-")
-  ).map((entry) => entry[1]);
+  return Object.entries(data)
+    .filter((entry) => entry[0].startsWith("tag-"))
+    .map((entry) => entry[1]);
 };
 
 /**
@@ -89,7 +90,7 @@ const remap = (data: Record<string, any>): Location => {
     },
     description: data.description,
     images: images,
-    tags: tags
+    tags: tags,
   };
 };
 
@@ -140,6 +141,13 @@ export const insert = async (location: Location): Promise<string> => {
   const client = await redis.getClient();
   const locationHashKey = keyGenerator.getLocationHashKey(location.id);
   const locationGeoKey = keyGenerator.getLocationGeoKey();
+
+  // check if user already exists; if yes, throw an error
+  const locationId = await client.HGET(locationHashKey, "id");
+  if (locationId) {
+    await client.close();
+    throw new DatabaseError("Entry already exists");
+  }
 
   await Promise.all([
     client.HSET(locationHashKey, { ...flatten(location) }),

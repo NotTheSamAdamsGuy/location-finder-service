@@ -3,6 +3,13 @@ import {expect, describe, it, vi} from "vitest";
 import * as tagsDao from "../../../../src/daos/tags_dao";
 
 const mockClient = {
+  SISMEMBER: (tagskey: string, tag: string) => {
+    if (tag === "tag") {
+      return 0;
+    } else {
+      return 1;
+    }
+  },
   SMEMBERS: (hashkey: string) => {
     if (hashkey === "test:tags") {
       const tags = ["tag1", "tag2"];
@@ -89,6 +96,11 @@ describe("Tags DAO - Redis", () => {
       const expected = 1;
       const actual = await tagsDao.insert("tag");
       expect(actual).toEqual(expected);
+    });
+    it("should throw an error when a tag already exists", async () => {
+      await expect(tagsDao.insert("tag2")).rejects.toThrowError(
+        "Entry already exists"
+      );
     });
   });
 
