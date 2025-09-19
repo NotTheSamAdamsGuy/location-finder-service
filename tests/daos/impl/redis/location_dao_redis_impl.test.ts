@@ -28,7 +28,7 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
-    tags: ["tag1", "tag2"]
+    tags: ["tag1", "tag2"],
   },
   {
     id: "234567",
@@ -54,7 +54,7 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
-    tags: []
+    tags: [],
   },
 ];
 
@@ -76,7 +76,7 @@ const mockLocationHashes: Array<Record<string, any>> = [
     "image-filename-1": "456",
     "image-description-1": "",
     "tag-0": "tag1",
-    "tag-1": "tag2"
+    "tag-1": "tag2",
   },
   {
     id: "234567",
@@ -98,6 +98,13 @@ const mockLocationHashes: Array<Record<string, any>> = [
 ];
 
 const mockClient = {
+  HGET: (hashkey: string) => {
+    if (hashkey === "test:locations:info:789") {
+      return Promise.resolve(null);
+    } else {
+      return Promise.resolve("234567");
+    }
+  },
   HGETALL: (hashkey: string) => {
     if (hashkey === "test:locations:info:123456") {
       return Promise.resolve(mockLocationHashes[0]);
@@ -134,7 +141,7 @@ const mockClient = {
   },
   close: () => {
     return;
-  }
+  },
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -163,7 +170,13 @@ describe("LocationDao - Redis", () => {
 
   describe("findNearbyByGeoRadius", () => {
     it("should return an array of locations on success", async () => {
-      const locations = await locationDao.findNearbyByGeoRadius(0, 0, 5, "mi", "ASC");
+      const locations = await locationDao.findNearbyByGeoRadius(
+        0,
+        0,
+        5,
+        "mi",
+        "ASC"
+      );
       expect(locations).toEqual(mockLocations);
     });
   });
@@ -179,19 +192,26 @@ describe("LocationDao - Redis", () => {
         zip: "12345",
         coordinates: {
           latitude: 0,
-          longitude: 0
+          longitude: 0,
         },
         description: "The nicest place.",
         images: [
           {
             originalFilename: "originalName",
             filename: "3939",
-            description: ""
-          }
-        ]
-      }
+            description: "",
+          },
+        ],
+      };
       const locationHashKey = await locationDao.insert(location);
       expect(locationHashKey).toEqual("test:locations:info:789");
+    });
+    it("should throw an error if the location already exists", async () => {
+      const location = mockLocations[1];
+
+      await expect(locationDao.insert(location)).rejects.toThrowError(
+        "Entry already exists"
+      );
     });
   });
 });

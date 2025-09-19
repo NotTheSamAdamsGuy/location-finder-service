@@ -79,6 +79,7 @@ export const insert = async (user: User): Promise<string> => {
   // check if user already exists; if yes, throw an error
   const username = await client.HGET(userHashKey, "username");
   if (username) {
+    await client.close();
     throw new DatabaseError("Entry already exists");
   }
 
