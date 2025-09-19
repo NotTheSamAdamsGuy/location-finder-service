@@ -2,6 +2,7 @@ import * as redis from "./redis_client.ts";
 import * as keyGenerator from "./redis_key_generator.ts";
 import { User } from "../../../types.ts";
 import { logger } from "../../../logging/logger.ts";
+import { DatabaseError } from "../../../utils/errors.ts";
 
 /**
  * Convert a Redis hash into a User object
@@ -74,6 +75,12 @@ export const findByUsername = async (
 export const insert = async (user: User): Promise<string> => {
   const client = await redis.getClient();
   const userHashKey = keyGenerator.getUserHashKey(user.username);
+
+  // check if user already exists; if yes, throw an error
+  const username = await client.HGET(userHashKey, "username");
+  if (username) {
+    throw new DatabaseError("Entry already exists");
+  }
 
   await Promise.all([
     client.HSET(userHashKey, { ...flatten(user) }),

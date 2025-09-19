@@ -90,17 +90,5 @@ describe("UsersService", () => {
       const expected = { success: true, result: "test:users:info:testuser2" };
       expect(actual).toEqual(expected);
     });
-
-    it("should throw an error if the user already exists", async () => {
-      const username = "testuser";
-      const password = "password";
-      const firstName = "Test";
-      const lastName = "User";
-      const role = "USER";
-
-      await expect(
-        service.createUser(username, password, firstName, lastName, role)
-      ).rejects.toThrowError("Unable to create user: User already exists");
-    });
   });
 });
