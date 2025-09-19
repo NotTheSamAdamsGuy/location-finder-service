@@ -105,6 +105,7 @@ router.post(
   body("description").optional(),
   body("imageDescription").optional(),
   body("tag").optional(),
+  body("displayOnSite"),
   async (req, res, next) => {
     const error = validationResult(req);
 

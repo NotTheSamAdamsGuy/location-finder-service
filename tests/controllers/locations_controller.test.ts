@@ -35,6 +35,7 @@ const mockLocations: Location[] = [
       },
     ],
     tags: ["tag1", "tag2"],
+    displayOnSite: false
   },
   {
     id: "234567",
@@ -66,6 +67,7 @@ const mockLocations: Location[] = [
       },
     ],
     tags: [],
+    displayOnSite: false
   },
 ];
 
@@ -225,6 +227,7 @@ describe("LocationsController", () => {
       description: "A mock location",
       imageDescription: "Ann image of the location",
       tag: "tag1",
+      displayOnSite: false
     };
 
     it("should receive a locationId value after a location has been created successfully", async () => {

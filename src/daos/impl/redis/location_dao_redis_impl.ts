@@ -91,6 +91,7 @@ const remap = (data: Record<string, any>): Location => {
     description: data.description,
     images: images,
     tags: tags,
+    displayOnSite: data.displayOnSite,
   };
 };
 
@@ -114,6 +115,7 @@ const flatten = (location: Location): Record<string, any> => {
     latitude: `${location.coordinates.latitude}`,
     longitude: `${location.coordinates.longitude}`,
     description: location.description,
+    displayOnSite: location.displayOnSite,
   };
 
   location.images?.forEach((image, index) => {
