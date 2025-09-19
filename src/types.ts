@@ -43,7 +43,7 @@ export type NearbyLocationsParams = {
   radius: number;
   unitOfDistance: "m" | "km" | "ft" | "mi";
   sort: "ASC" | "DESC";
-}
+};
 
 export type AddLocationParams = {
   name: string;
@@ -57,7 +57,7 @@ export type AddLocationParams = {
   coordinates: Coordinates;
   images: Image[];
   tags?: string[];
-}
+};
 
 export type User = {
   username: string;
@@ -88,4 +88,4 @@ export type ServiceReply = {
 export type ControllerReply = {
   message?: string;
   result?: unknown;
-}
+};

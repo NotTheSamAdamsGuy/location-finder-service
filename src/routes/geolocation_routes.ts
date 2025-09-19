@@ -3,6 +3,8 @@ import { query, validationResult } from "express-validator";
 import passport from "passport";
 
 import * as geolocationController from "../controllers/geolocation_controller.ts";
+import { sendSuccess } from "../middleware/responseHandler.ts";
+import { BadRequestError, NotFoundError } from "../utils/errors.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -15,12 +17,17 @@ router.get(
     const error = validationResult(req);
 
     if (!error.isEmpty) {
-      return res.status(400).json({ errors: error.array() });
+      throw new BadRequestError("Missing one or more required fields", error.array());
     }
 
     try {
       const address = await geolocationController.getAddress(req, res);
-      return address ? res.status(200).json(address) : res.sendStatus(404);
+
+      if (address) {
+        sendSuccess(res, address);
+      } else {
+        throw new NotFoundError("Address not found");
+      }
     } catch (err) {
       return next(err);
     }

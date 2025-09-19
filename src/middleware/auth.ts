@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { getRole } from "../services/authentication_service.ts";
 import { logger } from "../logging/logger.ts";
 import { getUser } from "../services/users_service.ts";
+import { ForbiddenError, UnauthorizedError } from "../utils/errors.ts";
 
 export const checkIfAdmin = async (
   req: Request,
@@ -19,9 +20,7 @@ export const checkIfAdmin = async (
     if (role === "ADMIN") {
       next();
     } else {
-      res
-        .status(403)
-        .send("User does not have permission to access this route");
+      next(new ForbiddenError());
     }
   }
 };
@@ -41,7 +40,7 @@ export const hashPassword = async (
       next();
     } catch (err) {
       logger.error("Error hashing password:", err);
-      res.status(500).send("Internal server error while hashing password");
+      next(new Error("Internal server error while validating password"));
     }
   }
 };
@@ -64,14 +63,14 @@ export const comparePassword = async (
         if (isMatch) {
           next();
         } else {
-          res.status(401).send("Invalid credentials");
+          next(new UnauthorizedError())
         }
       } else {
-        res.status(401).send("Invalid credentials");
+        next(new UnauthorizedError());
       }
     } catch (error) {
       logger.error("Error comparing passwords:", error);
-      res.status(500).send("Internal server error while validating password");
+      next(new Error("Internal server error while validating password"));
     }
   }
 };

@@ -3,6 +3,8 @@ import passport from "passport";
 
 import * as usersController from "../controllers/users_controller.ts";
 import { checkIfAdmin, hashPassword } from "../middleware/auth.ts";
+import { NotFoundError } from "../utils/errors.ts";
+import { sendSuccess } from "../middleware/responseHandler.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -16,9 +18,9 @@ router.get(
       const profile = data.result;
 
       if (profile) {
-        return res.status(200).json(profile);
+        sendSuccess(res, profile);
       } else {
-        return res.status(404).send({ error: "Profile not found" });
+        throw new NotFoundError("Profile not found");
       }
     } catch (err) {
       return next(err);
@@ -37,7 +39,7 @@ router.post(
       const reply = await usersController.createUser(req, res);
       const id = reply.result;
 
-      return res.status(200).json(id);
+      sendSuccess(res, id);
     } catch (err) {
       return next(err);
     }

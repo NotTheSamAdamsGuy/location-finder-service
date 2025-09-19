@@ -11,6 +11,7 @@ import tagsRoutes from "./routes/tags_routes.ts";
 import { logger } from "./logging/logger.ts";
 import * as usersService from "./services/users_service.ts";
 import { decrypt } from "./services/authentication_service.ts";
+import { errorHandler } from "./middleware/errorHandler.ts";
 
 const app = express();
 const host = config.service.host;
@@ -51,28 +52,6 @@ app.use("/locations", locationsRoutes);
 app.use("/geolocation", geolocationRoutes)
 app.use("/users", usersRoutes);
 app.use("/tags", tagsRoutes);
-
-function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  // Log the error for debugging purposes (optional but recommended)
-  logger.error(err);
-
-  // Determine the status code and message
-  const statusCode = 500;
-  const message = err.message || "Internal Server Error";
-
-  // Send a JSON response with the error details
-  res.status(statusCode).json({
-    status: "error",
-    message: message,
-    // Include stack trace in development for debugging, but not in production
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
-}
 
 app.use(errorHandler); // this should come after all other app.use instances
 
