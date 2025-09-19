@@ -36,7 +36,8 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
-    tags: ["tag1", "tag2"]
+    tags: ["tag1", "tag2"],
+    displayOnSite: false
   },
   {
     id: "234567",
@@ -67,7 +68,8 @@ const mockLocations: Location[] = [
         description: "",
       },
     ],
-    tags: []
+    tags: [],
+    displayOnSite: false
   },
 ];
 
@@ -178,7 +180,8 @@ describe("LocationsService", () => {
         },
         description: "A mock location",
         images: [],
-        tags: ["tag1", "tag2"]
+        tags: ["tag1", "tag2"],
+        displayOnSite: false
       };
 
       const data = await ls.addLocation(location);
@@ -201,7 +204,8 @@ describe("LocationsService", () => {
         },
         description: "A mock location",
         images: [],
-        tags: ["tag1", "tag2"]
+        tags: ["tag1", "tag2"],
+        displayOnSite: false
       };
 
       await expect(ls.addLocation(location)).rejects.toThrowError(

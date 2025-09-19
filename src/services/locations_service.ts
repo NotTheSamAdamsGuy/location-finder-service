@@ -91,6 +91,7 @@ export const addLocation = async (
     description,
     images,
     tags,
+    displayOnSite
   } = params;
 
   const location: Location = {
@@ -104,6 +105,7 @@ export const addLocation = async (
     description: description,
     images: images,
     tags: tags,
+    displayOnSite: displayOnSite
   };
 
   try {

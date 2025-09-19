@@ -15,6 +15,7 @@ export type Location = {
   description: string;
   images: Image[];
   tags?: string[];
+  displayOnSite?: boolean;
 };
 
 export type Coordinates = {
@@ -57,6 +58,7 @@ export type AddLocationParams = {
   coordinates: Coordinates;
   images: Image[];
   tags?: string[];
+  displayOnSite?: boolean
 };
 
 export type User = {

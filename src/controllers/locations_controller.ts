@@ -46,6 +46,7 @@ export const addLocation = async (req: Request, res: Response) => {
   const description = req.body.description || "";
   const multerStorageType = process.env.MULTER_STORAGE_TYPE;
   const files = req.files as Express.Multer.File[] | Express.MulterS3.File[];
+  const displayOnSite = req.body.displayOnSite;
 
   let imageDescriptions: string[] = [];
 
@@ -116,6 +117,7 @@ export const addLocation = async (req: Request, res: Response) => {
     images: images,
     coordinates: coordinates,
     tags: tags,
+    displayOnSite: displayOnSite
   });
 
   return { result: locationServiceReply.result } as LocationControllerReply;
