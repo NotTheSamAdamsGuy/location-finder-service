@@ -67,12 +67,6 @@ export const createUser = async (
   role: string,
 ): Promise<CreateUserServiceReply> => {
   try {
-    // check if user already exists in database
-    const existingUser = await usersDao.findByUsername(username);
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
-
     const roleVal = role.toLowerCase() === "admin" ? "ADMIN" : "USER";
     const user: User = {
       username: username,

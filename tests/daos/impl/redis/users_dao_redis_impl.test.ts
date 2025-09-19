@@ -4,6 +4,13 @@ import * as userDao from "../../../../src/daos/users_dao";
 import { User } from "../../../../src/types";
 
 const mockClient = {
+  HGET: (hashkey: string, username: string) => {
+    if (hashkey === "test:users:info:new_testuser") {
+      return Promise.resolve(null);
+    } else {
+      return Promise.resolve("testuser2")
+    }
+  },
   HGETALL: (hashkey: string) => {
     if (hashkey === "test:users:info:testuser") {
       const user: User = {
@@ -71,6 +78,21 @@ describe("User DAO - Redis", () => {
       const expected = "test:users:info:new_testuser"
       
       expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error if the user already exists", async () => {
+      const user: User = {
+        username: "testuser2",
+        password: "password",
+        firstName: "Test",
+        lastName: "User",
+        role: "USER",
+        lastLoginTimestamp: 12345
+      }
+
+      await expect(
+        userDao.insert(user)
+      ).rejects.toThrowError("Entry already exists");
     });
   });
 });
