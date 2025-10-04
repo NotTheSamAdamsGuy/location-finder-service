@@ -169,6 +169,64 @@ export const insert = async (location: Location): Promise<string> => {
 };
 
 /**
+ * Update an existing location.
+ *
+ * @param {Location} location - a Location object.
+ * @returns {Promise} - a Promise, resolving to the string value
+ *   for the ID of the location in the database.
+ */
+export const update = async (location: Location): Promise<string> => {
+  const client = await redis.getClient();
+  const locationHashKey = keyGenerator.getLocationHashKey(location.id);
+  const locationGeoKey = keyGenerator.getLocationGeoKey();
+
+  await Promise.all([
+    client.HSET(locationHashKey, { ...flatten(location) }),
+    client.GEOADD(locationGeoKey, {
+      longitude: location.coordinates.longitude,
+      latitude: location.coordinates.latitude,
+      member: location.id,
+    }),
+  ]);
+
+  logger.debug(`updated location ${locationHashKey}`);
+
+  await client.close();
+
+  return locationHashKey;
+};
+
+/**
+ * Delete a location.
+ *
+ * @param {string} locationKey A location hash key
+ * @returns {Promise} a Promise, resolving to a boolean - true if the deletion
+ *   was successful, false if it was not.
+ */
+export const remove = async (id: string): Promise<boolean> => {
+  const client = await redis.getClient();
+  const locationKey = keyGenerator.getLocationHashKey(id);
+  let isDeleted = false;
+
+  try {
+    const numDeleted = await client.DEL(locationKey);
+
+    if (numDeleted > 0) {
+      isDeleted = true;
+      logger.debug(`deleted hash with key ${locationKey}`);
+    } else {
+      logger.debug(`hash with key ${locationKey} not found`);
+    }
+  } catch (err) {
+    logger.error(err);
+  } finally {
+    await client.close();
+  }
+
+  return isDeleted;
+};
+
+/**
  * Get the location object for a given location ID.
  *
  * @param {string} id - a location ID.

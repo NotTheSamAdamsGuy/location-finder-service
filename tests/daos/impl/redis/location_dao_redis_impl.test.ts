@@ -142,6 +142,13 @@ const mockClient = {
   close: () => {
     return;
   },
+  DEL: (locationKey: string) => {
+    if (locationKey === "test:locations:info:123")  {
+      return 1;
+    } else {
+      throw new Error("error");
+    }
+  } 
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -212,6 +219,20 @@ describe("LocationDao - Redis", () => {
       await expect(locationDao.insert(location)).rejects.toThrowError(
         "Entry already exists"
       );
+    });
+  });
+
+  describe("remove", () => {
+    it("should return true after successfully deleting a location hash", async () => {
+      const locationId = "123"
+      const isDeleted = await locationDao.remove(locationId);
+      expect(isDeleted).toEqual(true);
+    });
+
+    it("should return false after being unable to delete a location hash", async () => {
+      const locationId = "456";
+      const isDeleted = await locationDao.remove(locationId);
+      expect(isDeleted).toEqual(false);
     });
   });
 });

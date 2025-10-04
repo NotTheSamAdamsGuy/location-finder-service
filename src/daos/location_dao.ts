@@ -14,6 +14,26 @@ export const insert = async (location: Location): Promise<string> =>
   impl.insert(location);
 
 /**
+ * Update an existing location.
+ *
+ * @param {Location} location - a Location object.
+ * @returns {Promise} - a Promise, resolving to the string value
+ *   for the ID of the location in the database.
+ */
+export const update = async (location: Location): Promise<string> => 
+  impl.update(location);
+
+/**
+ * Delete a location.
+ * 
+ * @param {string} locationKey A location hash key
+ * @returns {Promise} a Promise, resolving to a boolean - true if the deletion
+ *   was successful, false if it was not.
+ */
+export const remove = async (id: string): Promise<boolean> =>
+  impl.remove(id);
+
+/**
  * Get the location object for a location site ID.
  *
  * @param {string} id - a location ID.

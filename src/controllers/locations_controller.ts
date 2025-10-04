@@ -122,3 +122,11 @@ export const addLocation = async (req: Request, res: Response) => {
 
   return { result: locationServiceReply.result } as LocationControllerReply;
 };
+
+export const removeLocation = async (req: Request, res: Response) => {
+  const locationId = req.params.locationId;
+  const locationServiceReply = await locationsService.removeLocation(locationId);
+  const message = locationServiceReply.success ? "success" : "failure";
+
+  return { message: message, result: locationServiceReply.result };
+}

@@ -25,10 +25,7 @@ router.post(
       const token = reply.result;
       return res.json({ token: token });
     } catch (err: any) {
-      // const httpErr = err as Error;
-      console.log(err.message);
       if (err.message === "Invalid credentials") {
-        // return res.status(401).json({ message: httpErr.message });
         return next(new UnauthorizedError());
       }
 

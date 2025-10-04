@@ -19,6 +19,10 @@ const port = config.service.port;
 
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use((req, res, next) => {
+  logger.info(`${req.method} request made to ${req.url}`);
+  next();
+});
 
 // Configure the Bearer Strategy
 passport.use(
@@ -60,5 +64,5 @@ app.listen(port, () => {
 });
 
 process.on('uncaughtException', (err) => {
-  console.log('uncaught exception');
+  logger.error('uncaught exception');
 });

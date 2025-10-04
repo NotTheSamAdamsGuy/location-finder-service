@@ -123,4 +123,25 @@ router.post(
   }
 );
 
+// DELETE locations/abc123
+router.delete(
+  "/:locationId",
+  passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
+  async (req, res, next) => {
+    try {
+      const data = await locationsController.removeLocation(req, res);
+      const message = data.message;
+
+      if (message === "success") {
+        sendSuccess(res, data.result)
+      } else {
+        throw new NotFoundError("Location not found");
+      }
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
 export default router;
