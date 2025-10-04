@@ -108,6 +108,16 @@ vi.mock("../../src/daos/location_dao", () => ({
       throw new Error("error");
     }
   }),
+
+  remove: vi.fn((locationId: string) => {
+    if (locationId === "123") {
+      return true;
+    } else if (locationId === "456") {
+      return false;
+    } else {
+      throw new Error("error");
+    }
+  })
 }));
 
 describe("LocationsService", () => {
@@ -210,6 +220,27 @@ describe("LocationsService", () => {
 
       await expect(ls.addLocation(location)).rejects.toThrowError(
         "Unable to save location data"
+      );
+    });
+  });
+
+  describe("removeLocation", () => {
+    it("should return a success value of true after successfully deleting a location", async () => {
+      const locationId = "123";
+      const data = await ls.removeLocation(locationId);
+      expect(data.success).toEqual(true);
+    });
+
+    it("should return a success value of false after unsuccessfully deleting a location", async () => {
+      const locationId = "456";
+      const data = await ls.removeLocation(locationId);
+      expect(data.success).toEqual(false);
+    });
+
+    it("should throw an error when an error occured while trying to delete the location", async () => {
+      const locationId = "789";
+      await expect(ls.removeLocation(locationId)).rejects.toThrowError(
+        "Unable to delete location data"
       );
     });
   });

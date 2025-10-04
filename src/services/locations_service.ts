@@ -5,7 +5,7 @@ import {
   Location,
   NearbyLocationsParams,
   AddLocationParams,
-  ServiceReply
+  ServiceReply,
 } from "../types.ts";
 import { logger } from "../logging/logger.ts";
 
@@ -91,7 +91,7 @@ export const addLocation = async (
     description,
     images,
     tags,
-    displayOnSite
+    displayOnSite,
   } = params;
 
   const location: Location = {
@@ -105,14 +105,26 @@ export const addLocation = async (
     description: description,
     images: images,
     tags: tags,
-    displayOnSite: displayOnSite
+    displayOnSite: displayOnSite,
   };
 
   try {
     const locationKey = await locationDao.insert(location);
-    return {success: true, result: locationKey};
+    return { success: true, result: locationKey };
   } catch (err: any) {
     logger.error(err);
     throw new Error("Unable to save location data", err);
+  }
+};
+
+export const removeLocation = async (
+  locationId: string
+): Promise<LocationServiceReply> => {
+  try {
+    const isDeleted = await locationDao.remove(locationId);
+    return { success: isDeleted, result: undefined };
+  } catch (err: any) {
+    logger.error(err);
+    throw new Error("Unable to delete location data", err);
   }
 };

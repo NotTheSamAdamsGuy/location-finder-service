@@ -35,7 +35,7 @@ const mockLocations: Location[] = [
       },
     ],
     tags: ["tag1", "tag2"],
-    displayOnSite: false
+    displayOnSite: false,
   },
   {
     id: "234567",
@@ -67,7 +67,7 @@ const mockLocations: Location[] = [
       },
     ],
     tags: [],
-    displayOnSite: false
+    displayOnSite: false,
   },
 ];
 
@@ -100,10 +100,17 @@ vi.mock("../../src/services/locations_service", () => ({
       throw new Error("error");
     }
   }),
+  removeLocation: vi.fn((locationId) => {
+    if (locationId === "123") {
+      return { success: true, result: undefined };
+    } else {
+      return { success: false, result: undefined };
+    }
+  }),
 }));
 
 vi.mock("../../src/services/geolocation_service", () => ({
-  getCoordinates: vi.fn(({streetAddress}) => {
+  getCoordinates: vi.fn(({ streetAddress }) => {
     if (streetAddress === "234 Main Street") {
       return { result: { latitude: 0, longitude: 0 } };
     } else if (streetAddress === "345 Main Street") {
@@ -216,7 +223,6 @@ describe("LocationsController", () => {
     });
   });
 
-  // TODO: postLocation
   describe("addLocation", () => {
     const locationParams = {
       name: "New Mock Location",
@@ -227,7 +233,7 @@ describe("LocationsController", () => {
       description: "A mock location",
       imageDescription: "Ann image of the location",
       tag: "tag1",
-      displayOnSite: false
+      displayOnSite: false,
     };
 
     it("should receive a locationId value after a location has been created successfully", async () => {
@@ -253,6 +259,38 @@ describe("LocationsController", () => {
         // @ts-ignore -- ignore the type comparison error with req and res mocks
         locationsController.addLocation(req, res)
       ).rejects.toThrowError("error");
+    });
+  });
+
+  describe("removeLocation", () => {
+    it("should receive a success message when the location has been deleted", async () => {
+      const locationId = "123";
+      const req = getMockReq({ params: { locationId: locationId } });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await locationsController.removeLocation(req, res);
+      const expected = {
+        message: "success",
+        result: undefined,
+      };
+
+      expect(actual).toEqual(expected);
+    });
+
+    it("should throw an error when a location is unable to be deleted", async () => {
+      const locationId = "456";
+      const req = getMockReq({ params: { locationId: locationId } });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await locationsController.removeLocation(req, res);
+      const expected = {
+        message: "failure",
+        result: undefined,
+      };
+
+      expect(actual).toEqual(expected);
     });
   });
 });
