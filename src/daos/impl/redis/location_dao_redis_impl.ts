@@ -180,6 +180,15 @@ export const update = async (location: Location): Promise<string> => {
   const locationHashKey = keyGenerator.getLocationHashKey(location.id);
   const locationGeoKey = keyGenerator.getLocationGeoKey();
 
+  // determine which fields are not in the updated data so we can remove them using HDEL
+  const existingHashFields = Array.from(Object.keys(await client.HGETALL(locationHashKey)));
+  const newHashFields = Array.from(Object.keys(flatten(location)));
+  const fieldsToRemove = existingHashFields.filter((field) => newHashFields.indexOf(field) === -1);
+
+  if (fieldsToRemove.length > 0) {
+    await client.HDEL(locationHashKey, fieldsToRemove);
+  }
+
   await Promise.all([
     client.HSET(locationHashKey, { ...flatten(location) }),
     client.GEOADD(locationGeoKey, {

@@ -143,12 +143,12 @@ const mockClient = {
     return;
   },
   DEL: (locationKey: string) => {
-    if (locationKey === "test:locations:info:123")  {
+    if (locationKey === "test:locations:info:123") {
       return 1;
     } else {
       throw new Error("error");
     }
-  } 
+  },
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -222,9 +222,30 @@ describe("LocationDao - Redis", () => {
     });
   });
 
+  describe("update", () => {
+    it("should return a hash key after saving a new location", async () => {
+      const location: Location = {
+        id: "789",
+        name: "Test Location 3",
+        streetAddress: "789 Main St.",
+        city: "Anytown",
+        state: "USA",
+        zip: "12345",
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "The nicest place.",
+        images: [],
+      };
+      const locationHashKey = await locationDao.update(location);
+      expect(locationHashKey).toEqual("test:locations:info:789");
+    });
+  });
+
   describe("remove", () => {
     it("should return true after successfully deleting a location hash", async () => {
-      const locationId = "123"
+      const locationId = "123";
       const isDeleted = await locationDao.remove(locationId);
       expect(isDeleted).toEqual(true);
     });

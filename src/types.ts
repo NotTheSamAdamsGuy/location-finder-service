@@ -61,6 +61,10 @@ export type AddLocationParams = {
   displayOnSite?: boolean
 };
 
+export type UpdateLocationParams = AddLocationParams & {
+  id: string;
+};
+
 export type User = {
   username: string;
   password: string;

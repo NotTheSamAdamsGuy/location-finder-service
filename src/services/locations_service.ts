@@ -1,10 +1,7 @@
-import { nanoid } from "nanoid";
-
 import * as locationDao from "../daos/location_dao.ts";
 import {
   Location,
   NearbyLocationsParams,
-  AddLocationParams,
   ServiceReply,
 } from "../types.ts";
 import { logger } from "../logging/logger.ts";
@@ -75,39 +72,12 @@ export const getNearbyLocations = async (
 
 /**
  * Add a new Location into the database.
- * @param {AddLocationParams} params - data for the location
+ * @param {Location} location - data for the location
  * @returns {Promise<LocationServiceResult>} a Promise, resolving to a LocationServiceResult object.
  */
 export const addLocation = async (
-  params: AddLocationParams
+  location: Location
 ): Promise<LocationServiceReply> => {
-  const {
-    name,
-    streetAddress,
-    city,
-    state,
-    zip,
-    coordinates,
-    description,
-    images,
-    tags,
-    displayOnSite,
-  } = params;
-
-  const location: Location = {
-    id: nanoid(),
-    name: name,
-    streetAddress: streetAddress,
-    city: city,
-    state: state,
-    zip: zip,
-    coordinates: coordinates,
-    description: description,
-    images: images,
-    tags: tags,
-    displayOnSite: displayOnSite,
-  };
-
   try {
     const locationKey = await locationDao.insert(location);
     return { success: true, result: locationKey };
@@ -117,6 +87,28 @@ export const addLocation = async (
   }
 };
 
+/**
+ * Update a Location in the database.
+ * @param {Location} location - data for the location
+ * @returns {Promise<LocationServiceResult>} a Promise, resolving to a LocationServiceResult object.
+ */
+export const updateLocation = async (
+  location: Location
+): Promise<LocationServiceReply> => {
+  try {
+    const locationKey = await locationDao.update(location);
+    return { success: true, result: locationKey };
+  } catch (err: any) {
+    logger.error(err);
+    throw new Error("Unable to update location data", err);
+  }
+};
+
+/**
+ * Remove a Location from the database.
+ * @param {string} locationId - the location's ID
+ * @returns {Promise<LocationServiceResult>} a Promise, resolving to a LocationServiceResult object.
+ */
 export const removeLocation = async (
   locationId: string
 ): Promise<LocationServiceReply> => {

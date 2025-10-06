@@ -109,6 +109,14 @@ vi.mock("../../src/daos/location_dao", () => ({
     }
   }),
 
+  update: vi.fn((location: Location) => {
+    if (location.city === "New Jack City") {
+      return "hashkey";
+    } else {
+      throw new Error("error");
+    }
+  }),
+
   remove: vi.fn((locationId: string) => {
     if (locationId === "123") {
       return true;
@@ -220,6 +228,61 @@ describe("LocationsService", () => {
 
       await expect(ls.addLocation(location)).rejects.toThrowError(
         "Unable to save location data"
+      );
+    });
+  });
+
+  describe("updateLocation", () => {
+    it("should get the location key after saving to the database", async () => {
+      const location: Location = {
+        id: "123456",
+        name: "Mock Location 1",
+        streetAddress: "123 Any Street",
+        city: "New Jack City",
+        state: "US",
+        zip: "12345",
+        coordinates: {
+          latitude: 0,
+          longitude: 0
+        },
+        description: "A mock location",
+        images: [
+          {
+            originalFilename: "filename.jpg",
+            filename: "123456",
+            description: "A description"
+          }
+        ],
+        tags: ["tag1", "tag2"],
+        displayOnSite: false
+      };
+
+      const data = await ls.updateLocation(location);
+      const locationHashKey = data.result;
+      
+      expect(locationHashKey).toEqual("hashkey");
+    });
+
+    it("should throw an error saying it can't save location data", async () => {
+      const location = {
+        id: "123457",
+        name: "Mock Location 2",
+        streetAddress: "123 Any Street",
+        city: "Boogerville",
+        state: "US",
+        zip: "12345",
+        coordinates: {
+          latitude: 0,
+          longitude: 0
+        },
+        description: "A mock location",
+        images: [],
+        tags: ["tag1", "tag2"],
+        displayOnSite: false
+      };
+
+      await expect(ls.updateLocation(location)).rejects.toThrowError(
+        "Unable to update location data"
       );
     });
   });
