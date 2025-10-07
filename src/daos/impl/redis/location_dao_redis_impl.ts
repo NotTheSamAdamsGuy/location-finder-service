@@ -4,6 +4,9 @@ import { Image, Location } from "../../../types.ts";
 import { logger } from "../../../logging/logger.ts";
 import { DatabaseError } from "../../../utils/errors.ts";
 
+const locationIdsKey = keyGenerator.getLocationIDsKey();
+const locationGeoKey = keyGenerator.getLocationGeoKey();
+
 /**
  * Converts the image properties from a hash into an array of Image objects.
  * @param {Record<string, string>} data - image properties from a redis hash
@@ -208,23 +211,29 @@ export const update = async (location: Location): Promise<string> => {
 /**
  * Delete a location.
  *
- * @param {string} locationKey A location hash key
+ * @param {string} locationId A location ID
  * @returns {Promise} a Promise, resolving to a boolean - true if the deletion
  *   was successful, false if it was not.
  */
-export const remove = async (id: string): Promise<boolean> => {
+export const remove = async (locationId: string): Promise<boolean> => {
   const client = await redis.getClient();
-  const locationKey = keyGenerator.getLocationHashKey(id);
+  const locationHashKey = keyGenerator.getLocationHashKey(locationId);
   let isDeleted = false;
 
   try {
-    const numDeleted = await client.DEL(locationKey);
+    const results = await Promise.all([
+      client.DEL(locationHashKey),
+      client.ZREM(locationGeoKey, locationId),
+      client.SREM(locationIdsKey, locationHashKey)
+    ]);
+
+    const numDeleted = results[0];
 
     if (numDeleted > 0) {
       isDeleted = true;
-      logger.debug(`deleted hash with key ${locationKey}`);
+      logger.debug(`deleted hash with key ${locationHashKey}`);
     } else {
-      logger.debug(`hash with key ${locationKey} not found`);
+      logger.debug(`hash with key ${locationHashKey} not found`);
     }
   } catch (err) {
     logger.error(err);
