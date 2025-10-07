@@ -138,7 +138,7 @@ const createLocationFromRequest = async (req: Request): Promise<Location> => {
     images: images,
     coordinates: coordinates,
     tags: tags,
-    displayOnSite: req.body.displayOnSite,
+    displayOnSite: req.body.displayOnSite === "true" ? true : false,
   };
 };
 
