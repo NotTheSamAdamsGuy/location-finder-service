@@ -29,6 +29,7 @@ const mockLocations: Location[] = [
       },
     ],
     tags: ["tag1", "tag2"],
+    displayOnSite: false
   },
   {
     id: "234567",
@@ -55,6 +56,7 @@ const mockLocations: Location[] = [
       },
     ],
     tags: [],
+    displayOnSite: false
   },
 ];
 
@@ -149,6 +151,12 @@ const mockClient = {
       throw new Error("error");
     }
   },
+  SREM: () => {
+    return 0;
+  },
+  ZREM: () => {
+    return 0;
+  }
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -209,6 +217,7 @@ describe("LocationDao - Redis", () => {
             description: "",
           },
         ],
+        displayOnSite: false
       };
       const locationHashKey = await locationDao.insert(location);
       expect(locationHashKey).toEqual("test:locations:info:789");
@@ -237,6 +246,7 @@ describe("LocationDao - Redis", () => {
         },
         description: "The nicest place.",
         images: [],
+        displayOnSite: false
       };
       const locationHashKey = await locationDao.update(location);
       expect(locationHashKey).toEqual("test:locations:info:789");
