@@ -20,7 +20,7 @@ const port = config.service.port;
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use((req, res, next) => {
-  logger.info(`${req.method} request made to ${req.url}`);
+  logger.info(`${req.method} ${req.url}`);
   next();
 });
 

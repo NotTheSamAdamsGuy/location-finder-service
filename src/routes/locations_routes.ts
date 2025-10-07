@@ -50,7 +50,7 @@ router.get(
     }
 
     try {
-      const data = await locationsController.getNearbyLocations(req, res);
+      const data = await locationsController.getNearbyLocations(req);
       const locations = data.result;
       sendSuccess(res, locations);
     } catch (err) {
@@ -65,7 +65,7 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      const data = await locationsController.getLocation(req, res);
+      const data = await locationsController.getLocation(req);
       const location = data.result;
 
       if (location) {
@@ -103,6 +103,8 @@ router.post(
   body("state").notEmpty(),
   body("zip").notEmpty(),
   body("description").optional(),
+  body("filename").optional(),
+  body("originalFilename").optional(),
   body("imageDescription").optional(),
   body("tag").optional(),
   body("displayOnSite"),
@@ -114,7 +116,42 @@ router.post(
     }
 
     try {
-      const data = await locationsController.addLocation(req, res);
+      const data = await locationsController.addLocation(req);
+      const locationKey = data.result;
+      sendSuccess(res, locationKey);
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+// PUT /locations
+router.put(
+  "/",
+  passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
+  upload.array("images"),
+  body("id").notEmpty(),
+  body("name").notEmpty(),
+  body("streetAddress").notEmpty(),
+  body("city").notEmpty(),
+  body("state").notEmpty(),
+  body("zip").notEmpty(),
+  body("description").optional(),
+  body("filename").optional(),
+  body("originalFilename").optional(),
+  body("imageDescription").optional(),
+  body("tag").optional(),
+  body("displayOnSite"),
+  async (req, res, next) => {
+    const error = validationResult(req);
+
+    if (!error.isEmpty()) {
+      throw new BadRequestError("Missing one or more required fields", error.array());
+    }
+
+    try {
+      const data = await locationsController.updateLocation(req);
       const locationKey = data.result;
       sendSuccess(res, locationKey);
     } catch (err) {
@@ -130,7 +167,7 @@ router.delete(
   checkIfAdmin,
   async (req, res, next) => {
     try {
-      const data = await locationsController.removeLocation(req, res);
+      const data = await locationsController.removeLocation(req);
       const message = data.message;
 
       if (message === "success") {

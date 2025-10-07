@@ -1,25 +1,44 @@
-import { Request, Response } from "express";
+import { Request } from "express";
+import { nanoid } from "nanoid";
 
 import * as locationsService from "../services/locations_service.ts";
 import * as geolocationService from "../services/geolocation_service.ts";
-import { Coordinates, Image, ControllerReply } from "../types.ts";
+import { Coordinates, Image, ControllerReply, Location } from "../types.ts";
 
 export type LocationControllerReply = ControllerReply & {
   result?: Location | Location[] | string | null;
 };
 
-export const getAllLocations = async () => {
+/**
+ * Get data for all locations.
+ * @returns {Promise<LocationControllerReply>}
+ */
+export const getAllLocations = async (): Promise<LocationControllerReply> => {
   const data = await locationsService.getAllLocations();
   return { result: data.result } as LocationControllerReply;
 };
 
-export const getLocation = async (req: Request, res: Response) => {
+/**
+ * Get details for a given location.
+ * @param {Express.Request} req
+ * @returns {Promise<LocationControllerReply>}
+ */
+export const getLocation = async (
+  req: Request
+): Promise<LocationControllerReply> => {
   const locationId = req.params.locationId;
   const data = await locationsService.getLocation(locationId);
   return { result: data.result } as LocationControllerReply;
 };
 
-export const getNearbyLocations = async (req: Request, res: Response) => {
+/**
+ * Get nearby locations.
+ * @param {Express.Request} req
+ * @returns {Promise<LocationControllerReply>}
+ */
+export const getNearbyLocations = async (
+  req: Request
+): Promise<LocationControllerReply> => {
   const latitude = parseFloat(req.query.latitude as string);
   const longitude = parseFloat(req.query.longitude as string);
   const radius = parseFloat(req.query.radius as string);
@@ -34,30 +53,61 @@ export const getNearbyLocations = async (req: Request, res: Response) => {
     sort,
   });
 
-  return { result: data.result } as LocationControllerReply
+  return { result: data.result } as LocationControllerReply;
 };
 
-export const addLocation = async (req: Request, res: Response) => {
-  const name = req.body.name;
-  const streetAddress = req.body.streetAddress;
-  const city = req.body.city;
-  const state = req.body.state;
-  const zip = req.body.zip;
-  const description = req.body.description || "";
-  const multerStorageType = process.env.MULTER_STORAGE_TYPE;
-  const files = req.files as Express.Multer.File[] | Express.MulterS3.File[];
-  const displayOnSite = req.body.displayOnSite;
+/**
+ * Add a location to the database.
+ * @param {Express.Request} req
+ * @returns {Promise<LocationControllerReply>}
+ */
+export const addLocation = async (
+  req: Request
+): Promise<LocationControllerReply> => {
+  const location = await createLocationFromRequest(req);
+  const locationServiceReply = await locationsService.addLocation(location);
 
-  let imageDescriptions: string[] = [];
+  return { result: locationServiceReply.result } as LocationControllerReply;
+};
 
-  if (req.body.imageDescription) {
-    if (Array.isArray(req.body.imageDescription)) {
-      imageDescriptions = req.body.imageDescription;
-    } else {
-      imageDescriptions = [req.body.imageDescription];
-    }
-  }
+/**
+ * Update a location in the database.
+ * @param {Express.Request} req
+ * @returns {Promise<LocationControllerReply>}
+ */
+export const updateLocation = async (
+  req: Request
+): Promise<LocationControllerReply> => {
+  const location = await createLocationFromRequest(req);
+  const locationServiceReply = await locationsService.updateLocation(location);
 
+  return { result: locationServiceReply.result } as LocationControllerReply;
+};
+
+/**
+ * Remove a location from the database.
+ * @param {Express.Request} req
+ * @returns {Promise<LocationControllerReply>}
+ */
+export const removeLocation = async (
+  req: Request
+): Promise<LocationControllerReply> => {
+  const locationId = req.params.locationId;
+  const locationServiceReply = await locationsService.removeLocation(
+    locationId
+  );
+  const message = locationServiceReply.success ? "success" : "failure";
+
+  return { message: message, result: locationServiceReply.result };
+};
+
+/**
+ * Create a Location object using data contained in a Request.
+ *
+ * @param {Express.Request} req
+ * @returns {Promise<Location>} a Promise resolving to a Location object
+ */
+const createLocationFromRequest = async (req: Request): Promise<Location> => {
   let tags: string[] = [];
 
   if (req.body.tag) {
@@ -68,33 +118,101 @@ export const addLocation = async (req: Request, res: Response) => {
     }
   }
 
-  const images: Image[] = files?.map((file, index) => {
-    let image: Image = {
-      originalFilename: "",
-      filename: "",
-    };
+  const images: Image[] = createImagesFromRequest(req);
 
-    if (multerStorageType === "s3") {
-      const tempFile = file as Express.MulterS3.File;
-      image.originalFilename = tempFile.originalname;
-      image.filename = tempFile.key;
-    } else {
-      image.originalFilename = file.originalname;
-      image.filename = file.filename;
+  const coordinates: Coordinates = await getCoordinatesFromAddress(
+    req.body.streetAddress,
+    req.body.city,
+    req.body.state,
+    req.body.zip
+  );
+
+  return {
+    id: req.body.id || nanoid(),
+    name: req.body.name,
+    streetAddress: req.body.streetAddress,
+    city: req.body.city,
+    state: req.body.state,
+    zip: req.body.zip,
+    description: req.body.description || "",
+    images: images,
+    coordinates: coordinates,
+    tags: tags,
+    displayOnSite: req.body.displayOnSite === "true" ? true : false,
+  };
+};
+
+/**
+ * Create Image objects from the data in a Request.
+ * @param {Express.Request} req
+ * @returns {Image[]} an array of Image objects
+ */
+const createImagesFromRequest = (req: Request): Image[] => {
+  const files = req.files as Express.Multer.File[] | Express.MulterS3.File[];
+  const multerStorageType = process.env.MULTER_STORAGE_TYPE;
+
+  const filenames: string[] = Array.isArray(req.body.filename)
+    ? req.body.filename
+    : req.body.filename
+    ? [req.body.filename]
+    : [];
+
+  const originalFilenames: string[] = Array.isArray(req.body.originalFilename)
+    ? req.body.originalFilename
+    : [req.body.originalFilename];
+
+  const descriptions: string[] = Array.isArray(req.body.imageDescription)
+    ? req.body.imageDescription
+    : [req.body.imageDescription];
+
+  // if images are currently being uploaded, we need to get the system-generated filename
+  // from the files array, otherwise the wrong value will be saved for filename.
+  filenames.forEach((filename, index) => {
+    if (filename === originalFilenames[index]) {
+      if (multerStorageType === "s3") {
+        const matchingFile = files.find(
+          (file) => file.originalname === filename
+        ) as Express.MulterS3.File;
+        filenames[index] = matchingFile.key;
+      } else {
+        const matchingFile = files.find(
+          (file) => file.originalname === filename
+        ) as Express.Multer.File;
+        filenames[index] = matchingFile?.filename || "";
+      }
     }
-
-    if (imageDescriptions[index] && imageDescriptions[index] !== "") {
-      image.description = imageDescriptions[index];
-    }
-
-    return image;
   });
 
-  let coordinates: Coordinates = {
-    latitude: -1,
-    longitude: -1,
-  };
+  let images: Image[] = [];
 
+  if (filenames) {
+    images = filenames.map((filename, index) => {
+      return {
+        filename: filename,
+        originalFilename: originalFilenames[index],
+        description: descriptions[index],
+      };
+    });
+  }
+
+  return images;
+};
+
+/**
+ * Get the coordinates for a given address.
+ *
+ * @param {string} streetAddress
+ * @param {string} city
+ * @param {string} state
+ * @param {string} zip
+ * @returns {Promise<Coordinates>} a Promise resolving to a Coordinates object
+ */
+const getCoordinatesFromAddress = async (
+  streetAddress: string,
+  city: string,
+  state: string,
+  zip: string
+): Promise<Coordinates> => {
   try {
     const geoServiceReply = await geolocationService.getCoordinates({
       streetAddress: streetAddress,
@@ -102,31 +220,8 @@ export const addLocation = async (req: Request, res: Response) => {
       state: state,
       zip: zip,
     });
-    coordinates = geoServiceReply.result;
+    return geoServiceReply.result;
   } catch (err: any) {
     throw new Error("Unable to fetch coordinates data", err);
   }
-  
-  const locationServiceReply = await locationsService.addLocation({
-    name: name,
-    streetAddress: streetAddress,
-    city: city,
-    state: state,
-    zip: zip,
-    description: description,
-    images: images,
-    coordinates: coordinates,
-    tags: tags,
-    displayOnSite: displayOnSite
-  });
-
-  return { result: locationServiceReply.result } as LocationControllerReply;
 };
-
-export const removeLocation = async (req: Request, res: Response) => {
-  const locationId = req.params.locationId;
-  const locationServiceReply = await locationsService.removeLocation(locationId);
-  const message = locationServiceReply.success ? "success" : "failure";
-
-  return { message: message, result: locationServiceReply.result };
-}

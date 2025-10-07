@@ -91,7 +91,7 @@ const remap = (data: Record<string, any>): Location => {
     description: data.description,
     images: images,
     tags: tags,
-    displayOnSite: data.displayOnSite,
+    displayOnSite: data.displayOnSite === "true" ? true : false,
   };
 };
 
@@ -115,7 +115,7 @@ const flatten = (location: Location): Record<string, any> => {
     latitude: `${location.coordinates.latitude}`,
     longitude: `${location.coordinates.longitude}`,
     description: location.description,
-    displayOnSite: location.displayOnSite,
+    displayOnSite: `${location.displayOnSite}`,
   };
 
   location.images?.forEach((image, index) => {
@@ -179,6 +179,15 @@ export const update = async (location: Location): Promise<string> => {
   const client = await redis.getClient();
   const locationHashKey = keyGenerator.getLocationHashKey(location.id);
   const locationGeoKey = keyGenerator.getLocationGeoKey();
+
+  // determine which fields are not in the updated data so we can remove them using HDEL
+  const existingHashFields = Array.from(Object.keys(await client.HGETALL(locationHashKey)));
+  const newHashFields = Array.from(Object.keys(flatten(location)));
+  const fieldsToRemove = existingHashFields.filter((field) => newHashFields.indexOf(field) === -1);
+
+  if (fieldsToRemove.length > 0) {
+    await client.HDEL(locationHashKey, fieldsToRemove);
+  }
 
   await Promise.all([
     client.HSET(locationHashKey, { ...flatten(location) }),

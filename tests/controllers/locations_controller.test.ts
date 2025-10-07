@@ -100,6 +100,13 @@ vi.mock("../../src/services/locations_service", () => ({
       throw new Error("error");
     }
   }),
+  updateLocation: vi.fn((params) => {
+    if (params.name === "Updated Mock Location") {
+      return { result: "locationKey" };
+    } else {
+      throw new Error("error");
+    }
+  }),
   removeLocation: vi.fn((locationId) => {
     if (locationId === "123") {
       return { success: true, result: undefined };
@@ -259,6 +266,34 @@ describe("LocationsController", () => {
         // @ts-ignore -- ignore the type comparison error with req and res mocks
         locationsController.addLocation(req, res)
       ).rejects.toThrowError("error");
+    });
+  });
+
+  describe("updateLocation", () => {
+    const locationParams = {
+      id: "1",
+      name: "Updated Mock Location",
+      streetAddress: "234 Main Street",
+      city: "Anytown",
+      state: "US",
+      zip: "12345",
+      description: "A mock location",
+      imageDescription: "Ann image of the location",
+      tag: "tag1",
+      displayOnSite: false,
+    };
+
+    it("should receive a locationId value after updating a location", async () => {
+      const req = getMockReq({ body: locationParams });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await locationsController.updateLocation(req, res);
+      const expected = {
+        result: "locationKey",
+      } as locationsController.LocationControllerReply;
+
+      expect(actual).toEqual(expected);
     });
   });
 
