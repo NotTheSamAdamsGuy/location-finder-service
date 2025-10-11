@@ -15,6 +15,7 @@ const mockUserProfile: UserProfile = {
   username: mockUser.username,
   firstName: mockUser.firstName as string,
   lastName: mockUser.lastName as string,
+  role: mockUser.role as string,
 };
 
 vi.mock("../../src/daos/users_dao", () => ({
@@ -30,6 +31,9 @@ vi.mock("../../src/daos/users_dao", () => ({
   insert: vi.fn((user) => {
     return `test:users:info:${user.username}`;
   }),
+  findAllUsernames: vi.fn(() => {
+    return ["testuser1", "testuser2", "testuser3"];
+  })
 }));
 
 describe("UsersService", () => {
@@ -89,6 +93,15 @@ describe("UsersService", () => {
       );
       const expected = { success: true, result: "test:users:info:testuser2" };
       expect(actual).toEqual(expected);
+    });
+  });
+  
+  describe("getAllUsernames", () => {
+    it("should return an array of usernames", async () => {
+      const expectedUsernames = ["testuser1", "testuser2", "testuser3"];
+      const data = await service.getAllUsernames();
+      const actualUsernames = data.result;
+      expect(actualUsernames).toEqual(expectedUsernames);
     });
   });
 });

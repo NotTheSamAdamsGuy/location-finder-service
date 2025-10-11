@@ -48,6 +48,21 @@ const flatten = (user: User): Record<string, any> => {
 };
 
 /**
+ * Get all of the users.
+ */
+export const findAllUsernames = async (): Promise<string[]> => {
+  const client = await redis.getClient();
+  const userIDsKey = keyGenerator.getUserIDsKey();
+  const usernameHashKeys = await client.SMEMBERS(userIDsKey);
+  const usernames = usernameHashKeys.map((hashkey) => {
+    const splitHashkey = hashkey.split(":");
+    return splitHashkey[splitHashkey.length - 1];
+  });
+
+  return usernames;
+}
+
+/**
  * Get the user object for a username.
  *
  * @param {string} username - a username.

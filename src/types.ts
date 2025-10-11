@@ -78,6 +78,7 @@ export type UserProfile = {
   username: string;
   firstName: string;
   lastName: string;
+  role: string;
 };
 
 export type SessionPayload = {

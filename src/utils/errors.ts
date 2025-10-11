@@ -44,3 +44,10 @@ export class DatabaseError extends Error {
     this.name = "DatabaseError";
   }
 }
+
+export class InternalServerError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InternalServerError";
+  }
+}

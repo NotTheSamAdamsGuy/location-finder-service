@@ -11,6 +11,7 @@ vi.mock("../../src/services/users_service", () => ({
         username: "testuser",
         firstName: "Test",
         lastName: "User",
+        role: "USER"
       };
       return { success: true, result: profile };
     } else if (username === "bobbydroptables") {
@@ -24,6 +25,9 @@ vi.mock("../../src/services/users_service", () => ({
       return { success: true, result: "test:users:info:testuser" };
     }
   }),
+  getAllUsernames: vi.fn(() => {
+    return { success: true, result: ["testuser1", "testuser2", "testuser3"] };
+  })
 }));
 
 describe("UsersController", () => {
@@ -33,6 +37,7 @@ describe("UsersController", () => {
         username: "testuser",
         firstName: "Test",
         lastName: "User",
+        role: "USER"
       };
       const expected = { result: profile };
 
@@ -84,4 +89,12 @@ describe("UsersController", () => {
       expect(actual).toEqual(expected);
     });
   });
+
+  describe("getAllUsernames", () => {
+    it("should return an object containing all the usernames", async () => {
+      const actual = await uc.getAllUsernames();
+      const expected = { result: ["testuser1", "testuser2", "testuser3"] };
+      expect(actual).toEqual(expected);
+    });
+  })
 });

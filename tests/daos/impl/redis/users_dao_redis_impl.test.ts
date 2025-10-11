@@ -36,6 +36,13 @@ const mockClient = {
   },
   close: () => {
     return;
+  },
+  SMEMBERS: () => {
+    return [
+      "test:users:info:testuser1",
+      "test:users:info:testuser2",
+      "test:users:info:testuser3",
+    ];
   }
 };
 
@@ -44,6 +51,14 @@ vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
 }));
 
 describe("User DAO - Redis", () => {
+  describe("findAllUsernames", () => {
+    it("returns an array of username strings", async () => {
+      const usernames = await userDao.findAllUsernames();
+      const expectedUsernames = ["testuser1", "testuser2", "testuser3"];
+      expect(usernames).toEqual(expectedUsernames);
+    });
+  });
+
   describe("findByUsername", () => {
     it("returns a user object if a user exists", async () => {
       const user = await userDao.findByUsername("testuser");

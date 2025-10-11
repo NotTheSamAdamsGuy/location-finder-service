@@ -4,6 +4,13 @@ import { User } from "../types.ts";
 const impl = await loadDao("users");
 
 /**
+ * Get all of the usernames.
+ */
+export const findAllUsernames = (): Promise<string[]> => {
+  return impl.findAllUsernames();
+}
+
+/**
  * Get the user object for a username.
  *
  * @param {string} username - a username.
