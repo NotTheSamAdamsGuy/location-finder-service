@@ -37,12 +37,15 @@ const flatten = (user: User): Record<string, any> => {
     user;
   const flattenedUser: Record<string, any> = {
     username: username,
-    password: password,
     firstName: firstName,
     lastName: lastName,
     role: role,
     lastLoginTimestamp: lastLoginTimestamp,
   };
+
+  if (password) {
+    flattenedUser.password = password;
+  }
 
   return flattenedUser;
 };
@@ -60,7 +63,7 @@ export const findAllUsernames = async (): Promise<string[]> => {
   });
 
   return usernames;
-}
+};
 
 /**
  * Get the user object for a username.
@@ -108,4 +111,34 @@ export const insert = async (user: User): Promise<string> => {
   await client.close();
 
   return userHashKey;
+};
+
+/**
+ * Update a user object in the database.
+ * @param {User} user the User to update
+ * @returns {Promise<boolean>} A promise, resolving to true if the data was successfully updated, false otherwise.
+ */
+export const update = async (user: User): Promise<boolean> => {
+  try {
+    const client = await redis.getClient();
+    const userHashKey = keyGenerator.getUserHashKey(user.username);
+    let success = false;
+
+    try {
+      const x = await client.HSET(userHashKey, { ...flatten(user) });
+      console.log(`x: ${x}`);
+      logger.debug(`updated user ${userHashKey}`);
+      success = true;
+    } catch (err) {
+      console.log(err);
+      logger.error(`Error occurred while updating the user: ${err}`);
+    } finally {
+      await client.close();
+    }
+
+    return success;
+  } catch (err) {
+    logger.error(`Error occurred while communicating with database: ${err}`);
+    throw err;
+  }
 };

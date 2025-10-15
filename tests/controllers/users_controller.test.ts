@@ -5,13 +5,18 @@ import * as uc from "../../src/controllers/users_controller";
 import { UserProfile } from "../../src/types";
 
 vi.mock("../../src/services/users_service", () => ({
+  getUser: vi.fn((username) => {
+    if (username === "testuser3") {
+      return { success: true, result: { password: "other_pw" }};
+    }
+  }),
   getUserProfile: vi.fn((username) => {
     if (username === "testuser") {
       const profile: UserProfile = {
         username: "testuser",
         firstName: "Test",
         lastName: "User",
-        role: "USER"
+        role: "USER",
       };
       return { success: true, result: profile };
     } else if (username === "bobbydroptables") {
@@ -20,14 +25,29 @@ vi.mock("../../src/services/users_service", () => ({
       return { success: true, result: null };
     }
   }),
+  getAllUsernames: vi.fn(() => {
+    return { success: true, result: ["testuser1", "testuser2", "testuser3"] };
+  }),
   createUser: vi.fn((username, password, firstName, lastName, role) => {
     if (username === "testuser") {
       return { success: true, result: "test:users:info:testuser" };
     }
   }),
-  getAllUsernames: vi.fn(() => {
-    return { success: true, result: ["testuser1", "testuser2", "testuser3"] };
-  })
+  updateUser: vi.fn((req) => {
+    if (req === "testuser") {
+      return { success: true };
+    } else if (req === "testuser2") {
+      return {
+        success: false,
+        message: "An error occurred while updating the database.",
+      };
+    } else if (req === "testuser3") {
+      return {
+        success: false,
+        message: "Invalid credentials"
+      };
+    }
+  }),
 }));
 
 describe("UsersController", () => {
@@ -37,7 +57,7 @@ describe("UsersController", () => {
         username: "testuser",
         firstName: "Test",
         lastName: "User",
-        role: "USER"
+        role: "USER",
       };
       const expected = { result: profile };
 
@@ -70,8 +90,16 @@ describe("UsersController", () => {
     });
   });
 
+  describe("getAllUsernames", () => {
+    it("should return an object containing all the usernames", async () => {
+      const actual = await uc.getAllUsernames();
+      const expected = { result: ["testuser1", "testuser2", "testuser3"] };
+      expect(actual).toEqual(expected);
+    });
+  });
+
   describe("createUser", () => {
-    it("should return a user ID", async () => {
+    it("should return a hashkey", async () => {
       const req = getMockReq({
         body: {
           username: "testuser",
@@ -90,11 +118,41 @@ describe("UsersController", () => {
     });
   });
 
-  describe("getAllUsernames", () => {
-    it("should return an object containing all the usernames", async () => {
-      const actual = await uc.getAllUsernames();
-      const expected = { result: ["testuser1", "testuser2", "testuser3"] };
+  describe("updateUser", () => {
+    it("should return success: true - no password update", async () => {
+      const req = getMockReq({
+        body: {
+          username: "testuser",
+          firstName: "Test",
+          lastName: "User",
+          role: "USER",
+        },
+      });
+
+      const expected = { success: true };
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await uc.updateUser(req);
       expect(actual).toEqual(expected);
     });
-  })
+  });
+
+  it("should return success:false if there was an error", async () => {
+    const req = getMockReq({
+      body: {
+        username: "testuser2",
+        password: null,
+        firstName: "UpdatedTest",
+        lastName: "User",
+        role: "USER",
+      },
+    });
+
+    // @ts-ignore -- ignore the type comparison error with req and res mocks
+    const actual = await uc.updateUser(req);
+    const expected = {
+      success: false,
+      message: "Internal error",
+    };
+    expect(actual).toEqual(expected);
+  });
 });

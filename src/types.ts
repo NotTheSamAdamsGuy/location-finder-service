@@ -67,7 +67,7 @@ export type UpdateLocationParams = AddLocationParams & {
 
 export type User = {
   username: string;
-  password: string;
+  password: string | null;
   firstName: string | undefined;
   lastName: string | undefined;
   role: "USER" | "ADMIN";
@@ -89,7 +89,7 @@ export type SessionPayload = {
 export type ServiceReply = {
   success: boolean;
   message?: string;
-  result: unknown;
+  result?: unknown;
 };
 
 export type ControllerReply = {

@@ -22,6 +22,13 @@ export const findByUsername = async (username: string): Promise<User> =>
 /**
  * Insert a user object into the database.
  * @param {User} user - a User object
- * @returns {Promise<string>} - A promise, resolving to the ID of the new entry in the database.
+ * @returns {Promise<string>} - A promise, resolving to the hashkey of the new entry in the database.
  */
 export const insert = async (user: User): Promise<string> => impl.insert(user);
+
+/**
+ * Update a user object in the database.
+ * @param {User} user the User to update
+ * @returns {Promise<string>} A promise, resolving to the hashkey of the updated User
+ */
+export const update = async (user: User): Promise<boolean> => impl.update(user);

@@ -37,11 +37,20 @@ export const hashPassword = async (
       const salt = await bcrypt.genSalt(saltRounds);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
       req.body.password = hashedPassword;
+
+      if (req.body.newPassword) {
+        const hashedNewPassword = await bcrypt.hash(req.body.newPassword, salt);
+        req.body.newPassword = hashedNewPassword;
+      }
+      
       next();
     } catch (err) {
       logger.error("Error hashing password:", err);
       next(new Error("Internal server error while validating password"));
     }
+  } else {
+    // no password to hash - move on
+    next();
   }
 };
 
@@ -57,7 +66,7 @@ export const comparePassword = async (
       const user = userServiceReply.result;
 
       if (user) {
-        const hashedPassword = user.password;
+        const hashedPassword = user.password!;
         const isMatch = await bcrypt.compare(plainPassword, hashedPassword);
 
         if (isMatch) {
@@ -72,5 +81,7 @@ export const comparePassword = async (
       logger.error("Error comparing passwords:", error);
       next(new Error("Internal server error while validating password"));
     }
+  } else {
+    next(); // no password to compare - continue on
   }
 };
