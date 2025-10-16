@@ -175,7 +175,7 @@ describe("UsersController", () => {
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await uc.removeUser(req, res);
       const expected = {
-        message: "success",
+        success: true,
         result: undefined,
       };
 
@@ -190,8 +190,8 @@ describe("UsersController", () => {
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await uc.removeUser(req, res);
       const expected = {
-        message: "failure",
-        result: undefined,
+        message: "Internal error",
+        success: false,
       };
 
       expect(actual).toEqual(expected);
