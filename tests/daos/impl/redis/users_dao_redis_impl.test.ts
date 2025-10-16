@@ -28,7 +28,11 @@ const mockClient = {
   },
   HSET: (hashkey: string, user: User) => {
     if (hashkey === "test:users:info:new_testuser") {
-      return "test:users:info:new_testuser";
+      return 1;
+    } else if (hashkey === "test:users:info:updated_testuser") {
+      return 1;
+    } else {
+      throw new Error("error");
     }
   },
   SADD: () => {
@@ -36,7 +40,24 @@ const mockClient = {
   },
   close: () => {
     return;
-  }
+  },
+  SMEMBERS: () => {
+    return [
+      "test:users:info:testuser1",
+      "test:users:info:testuser2",
+      "test:users:info:testuser3",
+    ];
+  },
+  DEL: ((userkey: string) => {
+    if (userkey === "test:users:info:testuser") {
+      return 1;
+    } else if (userkey === "test:users:info:bad_user") {
+      return 0;
+    }
+  }),
+  SREM: () => {
+    return 0;
+  },
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -44,6 +65,14 @@ vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
 }));
 
 describe("User DAO - Redis", () => {
+  describe("findAllUsernames", () => {
+    it("returns an array of username strings", async () => {
+      const usernames = await userDao.findAllUsernames();
+      const expectedUsernames = ["testuser1", "testuser2", "testuser3"];
+      expect(usernames).toEqual(expectedUsernames);
+    });
+  });
+
   describe("findByUsername", () => {
     it("returns a user object if a user exists", async () => {
       const user = await userDao.findByUsername("testuser");
@@ -64,7 +93,7 @@ describe("User DAO - Redis", () => {
   });
 
   describe("insert", () => {
-    it("returns a number representing the number of fields added", async () => {
+    it("returns the hashkey for the user added to the database", async () => {
       const user: User = {
         username: "new_testuser",
         password: "password",
@@ -95,4 +124,52 @@ describe("User DAO - Redis", () => {
       ).rejects.toThrowError("Entry already exists");
     });
   });
+
+  describe("update", () => {
+    it("should return true if the update was successful", async () => {
+      const user: User = {
+        username: "updated_testuser",
+        password: "password",
+        firstName: "UpdatedTest",
+        lastName: "User",
+        role: "USER",
+        lastLoginTimestamp: 12345
+      }
+
+      const actual = await userDao.update(user);
+      const expected = true;
+      
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return false if an issue occurred during the update", async () => {
+      const user: User = {
+        username: "failed_update",
+        password: "password",
+        firstName: "UpdatedTest",
+        lastName: "User",
+        role: "USER",
+        lastLoginTimestamp: 12345
+      }
+
+      const actual = await userDao.update(user);
+      const expected = false;
+      
+      expect(actual).toEqual(expected);
+    })
+  });
+
+  describe("remove", () => {
+      it("should return true after successfully deleting a location hash", async () => {
+        const username = "testuser";
+        const isDeleted = await userDao.remove(username);
+        expect(isDeleted).toEqual(true);
+      });
+  
+      it("should return false after being unable to delete a location hash", async () => {
+        const username = "bad_user";
+        const isDeleted = await userDao.remove(username);
+        expect(isDeleted).toEqual(false);
+      });
+    });
 });

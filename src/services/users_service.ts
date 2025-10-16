@@ -6,6 +6,10 @@ export type UserServiceReply = ServiceReply & {
   result: User | null;
 };
 
+export type UsernamesServiceReply = ServiceReply & {
+  result: string[];
+};
+
 /**
  * Gets the user data for the user with the matching username value.
  * @param {string} username - a username string
@@ -17,6 +21,20 @@ export const getUser = async (username: string): Promise<UserServiceReply> => {
     return { success: true, result: user };
   } catch (err: any) {
     throw new Error("Unable to fetch user data.", err);
+  }
+};
+
+/**
+ * Get all of the usernames from the database.
+ * @returns {Promise<UserServiceReply>} a Promise resolving to an object containing an array of usernames
+ */
+export const getAllUsernames = async (): Promise<UsernamesServiceReply> => {
+  try {
+    const usernames = await usersDao.findAllUsernames();
+    const sortedUsernames = usernames.sort();
+    return { success: true, result: sortedUsernames };
+  } catch (err: any) {
+    throw new Error("Unable to fetch usernames.", err);
   }
 };
 
@@ -39,6 +57,7 @@ export const getUserProfile = async (
         username: user.username,
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
+        role: user.role ?? "",
       };
 
       return { success: true, result: profile };
@@ -64,7 +83,7 @@ export const createUser = async (
   password: string,
   firstName: string,
   lastName: string,
-  role: string,
+  role: string
 ): Promise<CreateUserServiceReply> => {
   try {
     const roleVal = role.toLowerCase() === "admin" ? "ADMIN" : "USER";
@@ -85,3 +104,40 @@ export const createUser = async (
     throw new Error(`Unable to create user: ${err.message}`);
   }
 };
+
+export const updateUser = async (
+  username: string,
+  password: string | null,
+  firstName: string,
+  lastName: string,
+  role: string
+): Promise<ServiceReply> => {
+  try {
+    const roleVal = role.toLowerCase() === "admin" ? "ADMIN" : "USER";
+    const user: User = {
+      username: username,
+      password: password,
+      firstName: firstName,
+      lastName: lastName,
+      role: roleVal,
+      lastLoginTimestamp: 0,
+    };
+
+    const success = await usersDao.update(user);
+
+    return { success: success };
+  } catch (err: any) {
+    logger.error(err);
+    throw new Error(`Unable to edit user: ${err.message}`);
+  }
+};
+
+export const removeUser = async (username: string): Promise<ServiceReply> => {
+  try {
+    const success = await usersDao.remove(username);
+    return { success: success };
+  } catch (err: any) {
+    logger.error(err);
+    throw new Error(`Unable to remove user data`);
+  }
+}

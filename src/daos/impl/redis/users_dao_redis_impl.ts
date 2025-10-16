@@ -37,14 +37,32 @@ const flatten = (user: User): Record<string, any> => {
     user;
   const flattenedUser: Record<string, any> = {
     username: username,
-    password: password,
     firstName: firstName,
     lastName: lastName,
     role: role,
     lastLoginTimestamp: lastLoginTimestamp,
   };
 
+  if (password) {
+    flattenedUser.password = password;
+  }
+
   return flattenedUser;
+};
+
+/**
+ * Get all of the users.
+ */
+export const findAllUsernames = async (): Promise<string[]> => {
+  const client = await redis.getClient();
+  const userIDsKey = keyGenerator.getUserIDsKey();
+  const usernameHashKeys = await client.SMEMBERS(userIDsKey);
+  const usernames = usernameHashKeys.map((hashkey) => {
+    const splitHashkey = hashkey.split(":");
+    return splitHashkey[splitHashkey.length - 1];
+  });
+
+  return usernames;
 };
 
 /**
@@ -93,4 +111,71 @@ export const insert = async (user: User): Promise<string> => {
   await client.close();
 
   return userHashKey;
+};
+
+/**
+ * Update a user object in the database.
+ * @param {User} user the User to update
+ * @returns {Promise<boolean>} A promise, resolving to true if the data was successfully updated, false otherwise.
+ */
+export const update = async (user: User): Promise<boolean> => {
+  try {
+    const client = await redis.getClient();
+    const userHashKey = keyGenerator.getUserHashKey(user.username);
+    let success = false;
+
+    try {
+      await client.HSET(userHashKey, { ...flatten(user) });
+      logger.debug(`updated user ${userHashKey}`);
+      success = true;
+    } catch (err) {
+      logger.error(`Error occurred while updating the user: ${err}`);
+    } finally {
+      await client.close();
+    }
+
+    return success;
+  } catch (err) {
+    logger.error(`Error occurred while communicating with database: ${err}`);
+    throw err;
+  }
+};
+
+/**
+ * Remove a user object from the database.
+ * @param {string} username the username of the User to remove
+ * @returns {Promise<boolean>} A promise, resolving to a boolean (true if operation was successful)
+ */
+export const remove = async (username: string): Promise<boolean> => {
+  try {
+    const client = await redis.getClient();
+    const userHashKey = keyGenerator.getUserHashKey(username);
+    const userIdsKey = keyGenerator.getUserIDsKey();
+    let success = false;
+
+    try {
+      const results = await Promise.all([
+        client.DEL(userHashKey),
+        client.SREM(userIdsKey, userHashKey)
+      ]);
+
+      const numDeleted = results[0];
+
+      if (numDeleted > 0) {
+        success = true;
+        logger.debug(`deleted hash with key ${userHashKey}`);
+      } else {
+        logger.debug(`hash with key ${userHashKey} not found`);
+      }
+    } catch (err) {
+      logger.error(`Error occurred while deleting the user: ${err}`);
+    } finally {
+      await client.close();
+    }
+
+    return success;
+  } catch (err) {
+    logger.error(`Error occurred while communicating with database: ${err}`);
+    throw err;
+  }
 };
