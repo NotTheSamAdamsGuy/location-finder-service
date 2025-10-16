@@ -37,6 +37,15 @@ vi.mock("../../src/daos/users_dao", () => ({
   update: vi.fn((user) => {
     return true;
   }),
+  remove: vi.fn((username) => {
+    if (username === "testuser") {
+      return true;
+    } else if (username === "testuser2") {
+      return false;
+    } else {
+      throw new Error("Error");
+    }
+  })
 }));
 
 describe("UsersService", () => {
@@ -127,5 +136,26 @@ describe("UsersService", () => {
       const expected = { success: true };
       expect(actual).toEqual(expected);
     });
+  });
+
+  describe("removeUser", () => {
+    it("should return a success value of true after successfully deleting a user", async () => {
+        const username = "testuser";
+        const data = await service.removeUser(username);
+        expect(data.success).toEqual(true);
+      });
+  
+      it("should return a success value of false after unsuccessfully deleting a user", async () => {
+        const username = "testuser2";
+        const data = await service.removeUser(username);
+        expect(data.success).toEqual(false);
+      });
+  
+      it("should throw an error when an error occured while trying to delete the user", async () => {
+        const username = "testuser3";
+        await expect(service.removeUser(username)).rejects.toThrowError(
+          "Unable to remove user data"
+        );
+      });
   });
 });

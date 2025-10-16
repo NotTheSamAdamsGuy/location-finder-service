@@ -125,13 +125,50 @@ export const update = async (user: User): Promise<boolean> => {
     let success = false;
 
     try {
-      const x = await client.HSET(userHashKey, { ...flatten(user) });
-      console.log(`x: ${x}`);
+      await client.HSET(userHashKey, { ...flatten(user) });
       logger.debug(`updated user ${userHashKey}`);
       success = true;
     } catch (err) {
-      console.log(err);
       logger.error(`Error occurred while updating the user: ${err}`);
+    } finally {
+      await client.close();
+    }
+
+    return success;
+  } catch (err) {
+    logger.error(`Error occurred while communicating with database: ${err}`);
+    throw err;
+  }
+};
+
+/**
+ * Remove a user object from the database.
+ * @param {string} username the username of the User to remove
+ * @returns {Promise<boolean>} A promise, resolving to a boolean (true if operation was successful)
+ */
+export const remove = async (username: string): Promise<boolean> => {
+  try {
+    const client = await redis.getClient();
+    const userHashKey = keyGenerator.getUserHashKey(username);
+    const userIdsKey = keyGenerator.getUserIDsKey();
+    let success = false;
+
+    try {
+      const results = await Promise.all([
+        client.DEL(userHashKey),
+        client.SREM(userIdsKey, userHashKey)
+      ]);
+
+      const numDeleted = results[0];
+
+      if (numDeleted > 0) {
+        success = true;
+        logger.debug(`deleted hash with key ${userHashKey}`);
+      } else {
+        logger.debug(`hash with key ${userHashKey} not found`);
+      }
+    } catch (err) {
+      logger.error(`Error occurred while deleting the user: ${err}`);
     } finally {
       await client.close();
     }

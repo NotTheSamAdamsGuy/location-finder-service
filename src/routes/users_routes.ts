@@ -85,4 +85,21 @@ router.put(
   }
 );
 
+router.delete("/:username",
+  passport.authenticate("bearer", { session: false }),
+  checkIfAdmin,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reply = await usersController.removeUser(req);
+      if (reply.success) {
+        sendSuccess(res, { success: true });
+      } else {
+        throw new InternalServerError("Unable to remove user");
+      }
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
 export default router;

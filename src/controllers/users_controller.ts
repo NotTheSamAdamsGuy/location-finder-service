@@ -77,3 +77,24 @@ export const updateUser = async (
     return { success: false, message: "Internal error" };
   }
 };
+
+type RemoveControllerReply = ControllerReply & {
+  success: boolean;
+  result?: string;
+};
+
+/**
+ * Remove a user from the database.
+ * @param {Express.Request} req
+ * @returns {Promise<RemoveControllerReply>}
+ */
+export const removeUser = async (req: Request): Promise<RemoveControllerReply> => {
+  const username = req.params.username;
+  const reply = await userService.removeUser(username);
+  
+  if (reply.success) {
+    return { success: reply.success };
+  } else {
+    return { success: false, message: "Internal error" };
+  }
+};

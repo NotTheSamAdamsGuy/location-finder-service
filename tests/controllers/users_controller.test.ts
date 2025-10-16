@@ -7,7 +7,7 @@ import { UserProfile } from "../../src/types";
 vi.mock("../../src/services/users_service", () => ({
   getUser: vi.fn((username) => {
     if (username === "testuser3") {
-      return { success: true, result: { password: "other_pw" }};
+      return { success: true, result: { password: "other_pw" } };
     }
   }),
   getUserProfile: vi.fn((username) => {
@@ -44,10 +44,20 @@ vi.mock("../../src/services/users_service", () => ({
     } else if (req === "testuser3") {
       return {
         success: false,
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       };
     }
   }),
+  removeUser: vi.fn((req) => {
+    if (req === "testuser") {
+      return { success: true };
+    } else if (req === "testuser2") {
+      return {
+        success: false,
+        message: "An error occurred while updating the database.",
+      };
+    }
+  })
 }));
 
 describe("UsersController", () => {
@@ -134,25 +144,57 @@ describe("UsersController", () => {
       const actual = await uc.updateUser(req);
       expect(actual).toEqual(expected);
     });
+
+    it("should return success:false if there was an error", async () => {
+      const req = getMockReq({
+        body: {
+          username: "testuser2",
+          password: null,
+          firstName: "UpdatedTest",
+          lastName: "User",
+          role: "USER",
+        },
+      });
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await uc.updateUser(req);
+      const expected = {
+        success: false,
+        message: "Internal error",
+      };
+      expect(actual).toEqual(expected);
+    });
   });
 
-  it("should return success:false if there was an error", async () => {
-    const req = getMockReq({
-      body: {
-        username: "testuser2",
-        password: null,
-        firstName: "UpdatedTest",
-        lastName: "User",
-        role: "USER",
-      },
+  describe("removeUser", () => {
+    it("should receive a success message when the user has been deleted", async () => {
+      const username = "testuser";
+      const req = getMockReq({ params: { username: username } });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await uc.removeUser(req, res);
+      const expected = {
+        message: "success",
+        result: undefined,
+      };
+
+      expect(actual).toEqual(expected);
     });
 
-    // @ts-ignore -- ignore the type comparison error with req and res mocks
-    const actual = await uc.updateUser(req);
-    const expected = {
-      success: false,
-      message: "Internal error",
-    };
-    expect(actual).toEqual(expected);
+    it("should throw an error when a user is unable to be deleted", async () => {
+      const username = "testuser2";
+      const req = getMockReq({ params: { username: username } });
+      const res = getMockRes().res;
+
+      // @ts-ignore -- ignore the type comparison error with req and res mocks
+      const actual = await uc.removeUser(req, res);
+      const expected = {
+        message: "failure",
+        result: undefined,
+      };
+
+      expect(actual).toEqual(expected);
+    });
   });
 });

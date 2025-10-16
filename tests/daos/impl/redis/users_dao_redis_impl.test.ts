@@ -47,7 +47,17 @@ const mockClient = {
       "test:users:info:testuser2",
       "test:users:info:testuser3",
     ];
-  }
+  },
+  DEL: ((userkey: string) => {
+    if (userkey === "test:users:info:testuser") {
+      return 1;
+    } else if (userkey === "test:users:info:bad_user") {
+      return 0;
+    }
+  }),
+  SREM: () => {
+    return 0;
+  },
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -148,4 +158,18 @@ describe("User DAO - Redis", () => {
       expect(actual).toEqual(expected);
     })
   });
+
+  describe("remove", () => {
+      it("should return true after successfully deleting a location hash", async () => {
+        const username = "testuser";
+        const isDeleted = await userDao.remove(username);
+        expect(isDeleted).toEqual(true);
+      });
+  
+      it("should return false after being unable to delete a location hash", async () => {
+        const username = "bad_user";
+        const isDeleted = await userDao.remove(username);
+        expect(isDeleted).toEqual(false);
+      });
+    });
 });

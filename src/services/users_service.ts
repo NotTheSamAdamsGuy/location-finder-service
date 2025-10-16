@@ -131,3 +131,13 @@ export const updateUser = async (
     throw new Error(`Unable to edit user: ${err.message}`);
   }
 };
+
+export const removeUser = async (username: string): Promise<ServiceReply> => {
+  try {
+    const success = await usersDao.remove(username);
+    return { success: success };
+  } catch (err: any) {
+    logger.error(err);
+    throw new Error(`Unable to remove user data`);
+  }
+}

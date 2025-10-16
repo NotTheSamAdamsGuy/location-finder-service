@@ -29,6 +29,13 @@ export const insert = async (user: User): Promise<string> => impl.insert(user);
 /**
  * Update a user object in the database.
  * @param {User} user the User to update
- * @returns {Promise<string>} A promise, resolving to the hashkey of the updated User
+ * @returns {Promise<boolean>} A promise, resolving to a boolean (true if operation was successful)
  */
 export const update = async (user: User): Promise<boolean> => impl.update(user);
+
+/**
+ * Remove a user object from the database.
+ * @param {string} username the username of the User to remove
+ * @returns {Promise<boolean>} A promise, resolving to a boolean (true if operation was successful)
+ */
+export const remove = async (username: string): Promise<boolean> => impl.remove(username);
