@@ -137,3 +137,25 @@ export type MapboxSuggestion = {
   poi_category?: string[];
   poi_category_ids?: string[];
 };
+
+type MapboxRoutablePoint = {
+  name: string;
+  latitude: number;
+  longitude: number;
+};
+
+export type MapboxFeature = {
+  type: string;
+  geometry: {
+    coordinates: number[],
+    type: string
+  };
+  properties: MapboxSuggestion & {
+    coordinates: {
+      latitude: number,
+      longitude: number,
+      accuracy?: string,
+      routable_points?: MapboxRoutablePoint[]
+    },
+  };
+};

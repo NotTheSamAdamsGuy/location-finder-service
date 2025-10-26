@@ -8,7 +8,7 @@ import locationsRoutes from "./routes/locations_routes.ts";
 import geolocationRoutes from "./routes/geolocation_routes.ts";
 import usersRoutes from "./routes/users_routes.ts";
 import tagsRoutes from "./routes/tags_routes.ts";
-import searchRoutes from "./routes/search_routes.ts";
+import mapsRoutes from "./routes/maps_routes.ts";
 import { logger } from "./logging/logger.ts";
 import * as usersService from "./services/users_service.ts";
 import { decrypt } from "./services/authentication_service.ts";
@@ -57,7 +57,7 @@ app.use("/locations", locationsRoutes);
 app.use("/geolocation", geolocationRoutes)
 app.use("/users", usersRoutes);
 app.use("/tags", tagsRoutes);
-app.use("/search", searchRoutes);
+app.use("/maps", mapsRoutes);
 
 app.use(errorHandler); // this should come after all other app.use instances
 
