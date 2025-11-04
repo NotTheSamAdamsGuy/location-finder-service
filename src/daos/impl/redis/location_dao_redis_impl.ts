@@ -3,6 +3,7 @@ import * as redis from "./redis_client.ts";
 import { Image, Location } from "../../../types.ts";
 import { logger } from "../../../logging/logger.ts";
 import { DatabaseError } from "../../../utils/errors.ts";
+import { FindNearbyParams } from "../../location_dao.ts";
 
 const locationIdsKey = keyGenerator.getLocationIDsKey();
 const locationGeoKey = keyGenerator.getLocationGeoKey();
@@ -306,6 +307,50 @@ export const findNearbyByGeoRadius = async (
       SORT: sort,
     }
   );
+
+  const pipeline = client.multi();
+
+  for (const locationId of locationIds) {
+    const locationHashKey = keyGenerator.getLocationHashKey(locationId);
+    pipeline.HGETALL(locationHashKey);
+  }
+
+  const locationHashes = await pipeline.execAsPipeline();
+
+  const locations: Location[] = locationHashes.map((locationHash) => {
+    return remap(locationHash);
+  });
+
+  await client.close();
+
+  return locations;
+};
+
+export const findNearby = async (
+  params: FindNearbyParams
+): Promise<Location[]> => {
+  const { latitude, longitude, radius, height, width, unitOfDistance, sort} = params;
+  const client = await redis.getClient();
+  const locationGeoKey = keyGenerator.getLocationGeoKey();
+  let locationIds: string[] = [];
+
+  if (radius && height && width) {
+    throw new Error("Please provide only radius or height and width.");
+  } else if (radius) {
+    locationIds = await client.geoSearch(
+      locationGeoKey,
+      { longitude: longitude, latitude: latitude },
+      { radius: radius, unit: unitOfDistance },
+      { SORT: sort }
+    );
+  } else if (height && width) {
+    locationIds = await client.geoSearch(
+      locationGeoKey,
+      { longitude: longitude, latitude: latitude },
+      { height: height, width: width, unit: unitOfDistance },
+      { SORT: sort }
+    )
+  }
 
   const pipeline = client.multi();
 

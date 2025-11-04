@@ -7,6 +7,8 @@ import { MapboxFeature, MapboxSuggestion } from "../types.ts";
 import { sendSuccess } from "../middleware/responseHandler.ts";
 import { BadRequestError } from "../utils/errors.ts";
 import { logger } from "../logging/logger.ts";
+import { query, validationResult } from "express-validator";
+import * as mapsController from "../controllers/maps_controller.ts";
 
 const router = Router({ mergeParams: true });
 
@@ -44,12 +46,12 @@ router.get(
       if (suggestions) {
         const returnData: MapSearchReply = {
           suggestions: suggestions,
-          sessionToken: sessionToken
+          sessionToken: sessionToken,
         };
-        
+
         sendSuccess(res, returnData);
       } else {
-        logger.error(`${mapboxResponse.status} ${mapboxResponse.statusText}`)
+        logger.error(`${mapboxResponse.status} ${mapboxResponse.statusText}`);
         throw new BadRequestError("Cannot process request");
       }
     } catch (err) {
@@ -74,7 +76,6 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
-      console.log(req.params);
       const mapboxLocationId = req.params["mapboxLocationId"];
       const sessionToken = req.query["sessionToken"];
       const url = `${process.env.MAPBOX_SEARCHBOX_API_URL}/retrieve/${mapboxLocationId}?session_token=${sessionToken}&access_token=${config.secrets.mapboxAccessToken}`;
@@ -88,9 +89,38 @@ router.get(
       if (features) {
         sendSuccess(res, features);
       } else {
-        logger.error(`${mapboxResponse.status} ${mapboxResponse.statusText}`)
+        logger.error(`${mapboxResponse.status} ${mapboxResponse.statusText}`);
         throw new BadRequestError("Cannot process request");
       }
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+router.get(
+  "/locations/nearby",
+  passport.authenticate("bearer", { session: false }),
+  query("latitude").notEmpty(),
+  query("longitude").notEmpty(),
+  query("unitOfDistance")
+    .notEmpty()
+    .isIn(["mi", "km"])
+    .withMessage('unitOfDistance must be "mi" or "km"'),
+  query("zoomlevel").notEmpty(),
+  query("mapWidthInPx").notEmpty(),
+  query("mapHeightInPx").notEmpty(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const error = validationResult(req);
+    
+    if (!error.isEmpty) {
+      return res.status(400).json({ errors: error.array() });
+    }
+
+    try {
+      const data = await mapsController.getNearbyLocations(req);
+      const locations = data.result;
+      sendSuccess(res, locations);
     } catch (err) {
       return next(err);
     }

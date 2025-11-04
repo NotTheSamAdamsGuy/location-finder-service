@@ -1,7 +1,7 @@
 import { expect, describe, it, vi } from "vitest";
 
 import * as locationDao from "../../../../src/daos/location_dao";
-import { Location } from "../../../../src/types";
+import { Location, NearbyLocationsParams } from "../../../../src/types";
 
 const mockLocations: Location[] = [
   {
@@ -131,6 +131,13 @@ const mockClient = {
   },
   GEORADIUS: () => {
     return Promise.resolve(mockLocations);
+  },
+  GEOSEARCH: (params: locationDao.FindNearbyParams) => {
+    if (params.radius && !params.height && !params.width) {
+      return Promise.resolve(mockLocations);
+    } else if (!params.radius && params.height && params.width) {
+      return Promise.resolve(mockLocations);
+    }
   },
   HSET: () => {
     return Promise.resolve(1);
@@ -266,4 +273,51 @@ describe("LocationDao - Redis", () => {
       expect(isDeleted).toEqual(false);
     });
   });
+
+  // describe("findNearby", () => {
+    // it("should return an array of locations on success - radius", async () => {
+    //   const params: locationDao.FindNearbyParams = {
+    //     latitude: 0,
+    //     longitude: 0,
+    //     radius: 5,
+    //     unitOfDistance: "km",
+    //     sort: 'ASC'
+    //   };
+      
+    //   const locations = await locationDao.findNearby(params);
+    
+    //   expect(locations).toEqual(mockLocations);
+    // });
+
+    // it("should return an array of locations on success - box", async () => {
+    //   const params: locationDao.FindNearbyParams = {
+    //     latitude: 0,
+    //     longitude: 0,
+    //     height: 5,
+    //     width: 5,
+    //     unitOfDistance: "km",
+    //     sort: 'ASC'
+    //   };
+      
+    //   const locations = await locationDao.findNearby(params);
+    
+    //   expect(locations).toEqual(mockLocations);
+    // });
+
+    // it("should throw an error", async () => {
+    //   const params: locationDao.FindNearbyParams = {
+    //     latitude: 0,
+    //     longitude: 0,
+    //     radius: 5,
+    //     height: 5,
+    //     width: 5,
+    //     unitOfDistance: "km",
+    //     sort: 'ASC'
+    //   };
+      
+    //   await expect(locationDao.findNearby(params)).rejects.toThrowError(
+    //     "Please provide only radius or height and width."
+    //   );
+    // });
+  // });
 });

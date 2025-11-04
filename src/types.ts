@@ -41,7 +41,9 @@ export type GeolocationSearchInputs = {
 export type NearbyLocationsParams = {
   longitude: number;
   latitude: number;
-  radius: number;
+  radius?: number;
+  height?: number;
+  width?: number;
   unitOfDistance: "m" | "km" | "ft" | "mi";
   sort: "ASC" | "DESC";
 };
@@ -158,4 +160,21 @@ export type MapboxFeature = {
       routable_points?: MapboxRoutablePoint[]
     },
   };
+};
+
+export type MapLocation = {
+  id: string;
+  name: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zip: string;
+  images?: string[];
+  description?: string;
+  tags?: string[];
+  coordinates: {
+    longitude: number;
+    latitude: number;
+  },
+  type: string;
 };
