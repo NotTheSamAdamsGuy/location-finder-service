@@ -1,9 +1,5 @@
 import * as locationDao from "../daos/location_dao.ts";
-import {
-  Location,
-  NearbyLocationsParams,
-  ServiceReply,
-} from "../types.ts";
+import { Location, NearbyLocationsParams, ServiceReply } from "../types.ts";
 import { logger } from "../logging/logger.ts";
 
 /**
@@ -15,6 +11,10 @@ import { logger } from "../logging/logger.ts";
 export type LocationServiceReply = ServiceReply & {
   result?: Location | Location[] | string | undefined | null;
 };
+
+export type NearbyLocationsServiceReply = ServiceReply & {
+  result?: Location[];
+}
 
 /**
  * Get the location's data based on the provided ID value.
@@ -49,24 +49,29 @@ export const getAllLocations = async (): Promise<LocationServiceReply> => {
  * Get locations nearby the given coordinates.
  *
  * @param {NearbyLocationsParams} - data for the location search
- * @returns {Promise<LocationServiceReply>} - a Promise, resolving to a LocationServiceReply object
+ * @returns {Promise<NearbyLocationsServiceReply>} - a Promise, resolving to a NearbyLocationsServiceReply object
  */
+
 export const getNearbyLocations = async (
   params: NearbyLocationsParams
-): Promise<LocationServiceReply> => {
-  const { latitude, longitude, radius, unitOfDistance, sort } = params;
+): Promise<NearbyLocationsServiceReply> => {
+  const { latitude, longitude, radius, height, width, unitOfDistance, sort } =
+    params;
 
   try {
-    const data = await locationDao.findNearbyByGeoRadius(
+    const data = await locationDao.findNearby({
       latitude,
       longitude,
       radius,
+      height,
+      width,
       unitOfDistance,
-      sort
-    );
+      sort,
+    });
     return { success: true, result: data };
   } catch (err: any) {
-    throw new Error("Unable to fetch nearby locations", err);
+    console.log(err);
+    throw new Error(`Unable to fetch nearby locations: ${err}`);
   }
 };
 

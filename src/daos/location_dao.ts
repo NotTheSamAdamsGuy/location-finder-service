@@ -20,18 +20,17 @@ export const insert = async (location: Location): Promise<string> =>
  * @returns {Promise} - a Promise, resolving to the string value
  *   for the ID of the location in the database.
  */
-export const update = async (location: Location): Promise<string> => 
+export const update = async (location: Location): Promise<string> =>
   impl.update(location);
 
 /**
  * Delete a location.
- * 
+ *
  * @param {string} locationKey A location hash key
  * @returns {Promise} a Promise, resolving to a boolean - true if the deletion
  *   was successful, false if it was not.
  */
-export const remove = async (id: string): Promise<boolean> =>
-  impl.remove(id);
+export const remove = async (id: string): Promise<boolean> => impl.remove(id);
 
 /**
  * Get the location object for a location site ID.
@@ -63,6 +62,21 @@ export const findNearbyByGeoRadius = async (
   latitude: number,
   longitude: number,
   radius: number,
-  unitOfDistance: 'm' | 'km' | 'ft' | 'mi',
-  sort?: 'ASC' | 'DESC'
-): Promise<Location[]> => impl.findNearbyByGeoRadius(latitude, longitude, radius, unitOfDistance, sort);
+  unitOfDistance: "m" | "km" | "ft" | "mi",
+  sort?: "ASC" | "DESC"
+): Promise<Location[]> =>
+  impl.findNearbyByGeoRadius(latitude, longitude, radius, unitOfDistance, sort);
+
+export type FindNearbyParams = {
+  latitude: number;
+  longitude: number;
+  radius?: number;
+  height?: number;
+  width?: number;
+  unitOfDistance: "km" | "mi" | "ft" | "m";
+  sort?: "ASC" | "DESC";
+};
+
+export const findNearby = async (
+  params: FindNearbyParams
+): Promise<Location[]> => impl.findNearby(params);

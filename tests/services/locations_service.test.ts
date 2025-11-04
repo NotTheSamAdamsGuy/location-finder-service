@@ -101,6 +101,16 @@ vi.mock("../../src/daos/location_dao", () => ({
     }
   }),
 
+  findNearby: vi.fn((data) => {
+    if (data.latitude === 30) {
+      // success case
+      return [mockLocations[0]];
+    } else {
+      // error condition
+      throw new Error("error");
+    }
+  }),
+
   insert: vi.fn((location: Location) => {
     if (location.city === "Anytown") {
       return "hashkey";
