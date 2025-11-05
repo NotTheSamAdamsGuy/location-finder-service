@@ -178,3 +178,8 @@ export type MapLocation = {
   },
   type: string;
 };
+
+export type MapSearchReply = {
+  suggestions: MapboxSuggestion[];
+  sessionToken: string;
+};

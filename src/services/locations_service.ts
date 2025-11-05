@@ -70,7 +70,7 @@ export const getNearbyLocations = async (
     });
     return { success: true, result: data };
   } catch (err: any) {
-    console.log(err);
+    logger.error(err);
     throw new Error(`Unable to fetch nearby locations: ${err}`);
   }
 };

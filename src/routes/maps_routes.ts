@@ -3,7 +3,7 @@ import passport from "passport";
 import { v4 as uuidv4 } from "uuid";
 
 import { config } from "../../config.ts";
-import { MapboxFeature, MapboxSuggestion } from "../types.ts";
+import { MapSearchReply, MapboxSuggestion } from "../types.ts";
 import { sendSuccess } from "../middleware/responseHandler.ts";
 import { BadRequestError } from "../utils/errors.ts";
 import { logger } from "../logging/logger.ts";
@@ -11,16 +11,6 @@ import { query, validationResult } from "express-validator";
 import * as mapsController from "../controllers/maps_controller.ts";
 
 const router = Router({ mergeParams: true });
-
-type MapboxSuggestionReply = {
-  suggestions: MapboxSuggestion[];
-  attribution: string;
-};
-
-type MapSearchReply = {
-  suggestions: MapboxSuggestion[];
-  sessionToken: string;
-};
 
 // /maps/search?q=abc123
 router.get(
@@ -60,12 +50,6 @@ router.get(
   }
 );
 
-type MapboxRetrieveReply = {
-  type: string;
-  features: MapboxFeature[];
-  attribution: string;
-};
-
 // /maps/location/abc123
 router.get(
   "/location/:mapboxLocationId",
@@ -84,7 +68,7 @@ router.get(
 
       const mapboxResponse = await fetch(url);
       const data = await mapboxResponse.json();
-      const features: MapboxRetrieveReply = data.features;
+      const features: GeoJSON.FeatureCollection = data.features;
 
       if (features) {
         sendSuccess(res, features);
