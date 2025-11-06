@@ -1,5 +1,8 @@
 import * as locationDao from "../daos/location_dao.ts";
-import { Feature, FeatureCollection, Geometry, Point } from "geojson";
+import {
+  LocationFeature,
+  LocationFeatureCollection,
+} from "@notthesamadamsguy/location-finder-types";
 import { Location, NearbyLocationsParams, ServiceReply } from "../types.ts";
 import { logger } from "../logging/logger.ts";
 
@@ -9,31 +12,40 @@ type FeatureServiceReplyType = ServiceReply & {
 
 type NearbyFeaturesServiceReplyType = ServiceReply & {
   result: GeoJSON.FeatureCollection;
-}
+};
 
-const mapLocationToGeoJSONFeature = (location: Location) => {
-  const geometry: Geometry = {
-    type: "Point",
-    coordinates: [
-      location.coordinates.longitude,
-      location.coordinates.latitude,
-    ],
-  };
-
-  const feature: Feature<Point> = {
-    type: "Feature",
-    geometry: geometry,
+const mapLocationToGeoJSONFeature = (location: Location): LocationFeature => {
+  const feature: LocationFeature = {
+    id: location.id,
     properties: {
-      id: location.id,
       name: location.name,
       description: location.description,
-      streetAddress: location.streetAddress,
+      address: location.streetAddress,
       city: location.city,
-      state: location.state,
-      zip: location.zip,
+      state: {
+        name: "",
+        abbreviation: location.state,
+      },
+      postalCode: location.zip,
+      country: {
+        name: "United States",
+        countryCode: "US",
+      },
+      coordinates: {
+        longitude: location.coordinates.longitude,
+        latitude: location.coordinates.latitude,
+      },
       images: location.images,
       tags: location.tags,
     },
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [
+        location.coordinates.longitude,
+        location.coordinates.latitude,
+      ],
+    }
   };
 
   return feature;
@@ -56,15 +68,15 @@ export const getFeature = async (
 
     const feature = mapLocationToGeoJSONFeature(location);
     return { success: true, result: feature };
-
   } catch (err: any) {
+    logger.error(err);
     throw new Error("Unable to fetch feature data.", err);
   }
 };
 
 /**
  * Get a FeatureCollection with features based on the given parameters
- * @param params 
+ * @param params
  * @returns {Promise<NearbyFeaturesServiceReplyType>} a promise resolving to a NearbyFeaturesServiceReplyType object
  */
 export const getNearbyFeatures = async (
@@ -84,22 +96,22 @@ export const getNearbyFeatures = async (
       sort,
     });
 
-    const features: Feature[] = [];
+    const features: LocationFeature[] = [];
 
     locations.forEach((location) => {
       if (location.displayOnSite) {
-        features.push(mapLocationToGeoJSONFeature(location))
+        features.push(mapLocationToGeoJSONFeature(location));
       }
     });
 
-    const featureCollection: FeatureCollection = {
+    const featureCollection: LocationFeatureCollection = {
       type: "FeatureCollection",
-      features: features
+      features: features,
     };
 
     return { success: true, result: featureCollection };
   } catch (err: any) {
-    console.log(err);
+    logger.error(err);
     throw new Error(`Unable to fetch nearby features: ${err}`);
   }
 };
