@@ -1,75 +1,106 @@
 import { expect, vi, describe, it } from "vitest";
 import { getMockReq, getMockRes } from "vitest-mock-express";
+import { LocationFeatureCollection } from "@notthesamadamsguy/location-finder-types";
 
 import * as locationsController from "../../src/controllers/locations_controller";
-import { Location } from "../../src/types";
 
-const mockLocations: Location[] = [
-  {
-    id: "123456",
-    name: "Mock Location 1",
-    streetAddress: "123 Any Street",
-    city: "Anytown",
-    state: "US",
-    zip: "12345",
-    coordinates: {
-      latitude: 0,
-      longitude: 0,
+const mockLocations: LocationFeatureCollection = {
+  type: "FeatureCollection",
+  features: [
+    {
+      id: "123456",
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
+      properties: {
+        name: "Mock Location 1",
+        address: "123 Any Street",
+        city: "Anytown",
+        state: {
+          name: "State",
+          abbreviation: "ST",
+        },
+        postalCode: "12345",
+        country: {
+          name: "United States",
+          countryCode: "US",
+        },
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "A mock location",
+        images: [
+          {
+            originalFilename: "test-image-1",
+            filename: "123",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-2",
+            filename: "456",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-3",
+            filename: "789",
+            description: "",
+          },
+        ],
+        tags: ["tag1", "tag2"],
+        displayOnSite: true,
+      },
     },
-    description: "A mock location",
-    images: [
-      {
-        originalFilename: "test-image-1",
-        filename: "123",
-        description: "",
+    {
+      id: "234567",
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [0, 0],
       },
-      {
-        originalFilename: "test-image-2",
-        filename: "456",
-        description: "",
+      properties: {
+        name: "Mock Location 2",
+        address: "456 Main Street",
+        city: "Anytown",
+        state: {
+          name: "State",
+          abbreviation: "ST",
+        },
+        postalCode: "12345",
+        country: {
+          name: "United States",
+          countryCode: "US",
+        },
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "A second mock location",
+        images: [
+          {
+            originalFilename: "test-image-4",
+            filename: "234",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-5",
+            filename: "567",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-6",
+            filename: "890",
+            description: "",
+          },
+        ],
+        tags: [],
+        displayOnSite: true,
       },
-      {
-        originalFilename: "test-image-3",
-        filename: "789",
-        description: "",
-      },
-    ],
-    tags: ["tag1", "tag2"],
-    displayOnSite: false,
-  },
-  {
-    id: "234567",
-    name: "Mock Location 2",
-    streetAddress: "456 Main Street",
-    city: "Anytown",
-    state: "US",
-    zip: "12345",
-    coordinates: {
-      latitude: 0,
-      longitude: 0,
     },
-    description: "A second mock location",
-    images: [
-      {
-        originalFilename: "test-image-4",
-        filename: "234",
-        description: "",
-      },
-      {
-        originalFilename: "test-image-5",
-        filename: "567",
-        description: "",
-      },
-      {
-        originalFilename: "test-image-6",
-        filename: "890",
-        description: "",
-      },
-    ],
-    tags: [],
-    displayOnSite: false,
-  },
-];
+  ],
+};
 
 vi.mock("../../src/services/locations_service", () => ({
   getAllLocations: vi.fn(() => {
@@ -77,7 +108,7 @@ vi.mock("../../src/services/locations_service", () => ({
   }),
   getLocation: vi.fn((locationId) => {
     if (locationId === "123456") {
-      return { success: true, result: mockLocations[0] };
+      return { success: true, result: mockLocations.features[0] };
     } else if (locationId === "345678") {
       return { success: true, result: null };
     } else {
@@ -86,7 +117,7 @@ vi.mock("../../src/services/locations_service", () => ({
   }),
   getNearbyLocations: vi.fn((params) => {
     if (params.latitude === 47) {
-      return { result: mockLocations[0] };
+      return { result: mockLocations.features[0] };
     } else if (params.latitude === 48) {
       return { result: [] };
     } else {
@@ -94,14 +125,14 @@ vi.mock("../../src/services/locations_service", () => ({
     }
   }),
   addLocation: vi.fn((params) => {
-    if (params.name === "New Mock Location") {
+    if (params.properties.name === "New Mock Location") {
       return { result: "locationId" };
     } else {
       throw new Error("error");
     }
   }),
   updateLocation: vi.fn((params) => {
-    if (params.name === "Updated Mock Location") {
+    if (params.properties.name === "Updated Mock Location") {
       return { result: "locationKey" };
     } else {
       throw new Error("error");
@@ -144,7 +175,7 @@ describe("LocationsController", () => {
       const res = getMockRes().res;
 
       const expected = {
-        result: mockLocations[0],
+        result: mockLocations.features[0],
       } as locationsController.LocationControllerReply;
       // @ts-ignore -- ignore the type comparison error with req and res mocks
       const actual = await locationsController.getLocation(req, res);
@@ -179,7 +210,7 @@ describe("LocationsController", () => {
   describe("getNearbyLocations", () => {
     it("should return an array of nearby locations", async () => {
       const expected = {
-        result: mockLocations[0],
+        result: mockLocations.features[0],
       } as locationsController.LocationControllerReply;
       const req = getMockReq({
         query: {
@@ -233,14 +264,15 @@ describe("LocationsController", () => {
   describe("addLocation", () => {
     const locationParams = {
       name: "New Mock Location",
-      streetAddress: "234 Main Street",
+      address: "234 Main Street",
       city: "Anytown",
-      state: "US",
-      zip: "12345",
+      state: "ST",
+      postalCode: "12345",
+      countryCode: "US",
       description: "A mock location",
-      imageDescription: "Ann image of the location",
+      imageDescription: "An image of the location",
       tag: "tag1",
-      displayOnSite: false,
+      displayOnSite: true,
     };
 
     it("should receive a locationId value after a location has been created successfully", async () => {
@@ -273,7 +305,7 @@ describe("LocationsController", () => {
     const locationParams = {
       id: "1",
       name: "Updated Mock Location",
-      streetAddress: "234 Main Street",
+      address: "234 Main Street",
       city: "Anytown",
       state: "US",
       zip: "12345",

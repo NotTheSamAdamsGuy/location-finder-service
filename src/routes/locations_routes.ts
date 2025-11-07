@@ -40,18 +40,24 @@ router.get(
   passport.authenticate("bearer", { session: false }),
   query("latitude").notEmpty(),
   query("longitude").notEmpty(),
-  query("radius").notEmpty(),
-  query("unitOfDistance").notEmpty(),
+  query("unitOfDistance")
+    .notEmpty()
+    .isIn(["mi", "km"])
+    .withMessage('unitOfDistance must be "mi" or "km"'),
+  query("zoomlevel").notEmpty(),
+  query("mapWidthInPx").notEmpty(),
+  query("mapHeightInPx").notEmpty(),
   async (req: Request, res: Response, next) => {
     const error = validationResult(req);
 
-    if (!error.isEmpty) {
+    if (!error.isEmpty()) {
       return res.status(400).json({ errors: error.array() });
     }
 
     try {
       const data = await locationsController.getNearbyLocations(req);
       const locations = data.result;
+      res.setHeader("Access-Control-Allow-Origin", "*");
       sendSuccess(res, locations);
     } catch (err) {
       return next(err);
@@ -98,10 +104,11 @@ router.post(
   checkIfAdmin,
   upload.array("images"),
   body("name").notEmpty(),
-  body("streetAddress").notEmpty(),
+  body("address").notEmpty(),
   body("city").notEmpty(),
-  body("state").notEmpty(),
-  body("zip").notEmpty(),
+  body("stateAbbreviation").notEmpty(),
+  body("postalCode").notEmpty(),
+  body("countryCode").notEmpty(),
   body("description").optional(),
   body("filename").optional(),
   body("originalFilename").optional(),
@@ -133,10 +140,11 @@ router.put(
   upload.array("images"),
   body("id").notEmpty(),
   body("name").notEmpty(),
-  body("streetAddress").notEmpty(),
+  body("address").notEmpty(),
   body("city").notEmpty(),
-  body("state").notEmpty(),
-  body("zip").notEmpty(),
+  body("stateAbbreviation").notEmpty(),
+  body("postalCode").notEmpty(),
+  body("countryCode").notEmpty(),
   body("description").optional(),
   body("filename").optional(),
   body("originalFilename").optional(),

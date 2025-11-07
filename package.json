@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@aws-sdk/types": "^3.862.0",
-    "@notthesamadamsguy/location-finder-types": "^0.0.1",
+    "@notthesamadamsguy/location-finder-types": "^0.0.2",
     "@types/express": "^5.0.3",
     "@types/geojson": "^7946.0.16",
     "@types/multer": "^2.0.0",

@@ -1,77 +1,109 @@
 import { expect, vi, describe, it } from "vitest";
+import {
+  LocationFeature,
+  LocationFeatureCollection,
+} from "@notthesamadamsguy/location-finder-types";
 
 import * as ls from "../../src/services/locations_service.ts";
-import {
-  Location,
-  NearbyLocationsParams,
-} from "../../src/types.ts";
+import { NearbyLocationsParams } from "../../src/types.ts";
 
-const mockLocations: Location[] = [
-  {
-    id: "123456",
-    name: "Mock Location 1",
-    streetAddress: "123 Any Street",
-    city: "Anytown",
-    state: "US",
-    zip: "12345",
-    coordinates: {
-      latitude: 0,
-      longitude: 0,
+const mockLocations: LocationFeatureCollection = {
+  type: "FeatureCollection",
+  features: [
+    {
+      id: "123456",
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
+      properties: {
+        name: "Mock Location 1",
+        address: "123 Any Street",
+        city: "Anytown",
+        state: {
+          name: "State",
+          abbreviation: "ST",
+        },
+        postalCode: "12345",
+        country: {
+          name: "United States",
+          countryCode: "US",
+        },
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "A mock location",
+        images: [
+          {
+            originalFilename: "test-image-1",
+            filename: "123",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-2",
+            filename: "456",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-3",
+            filename: "789",
+            description: "",
+          },
+        ],
+        tags: ["tag1", "tag2"],
+        displayOnSite: true,
+      },
     },
-    description: "A mock location",
-    images: [
-      {
-        originalFilename: "test-image-1",
-        filename: "123",
-        description: "",
+    {
+      id: "234567",
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [0, 0],
       },
-      {
-        originalFilename: "test-image-2",
-        filename: "456",
-        description: "",
+      properties: {
+        name: "Mock Location 2",
+        address: "456 Main Street",
+        city: "Anytown",
+        state: {
+          name: "State",
+          abbreviation: "ST",
+        },
+        postalCode: "12345",
+        country: {
+          name: "United States",
+          countryCode: "US",
+        },
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "A second mock location",
+        images: [
+          {
+            originalFilename: "test-image-4",
+            filename: "234",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-5",
+            filename: "567",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-6",
+            filename: "890",
+            description: "",
+          },
+        ],
+        tags: [],
+        displayOnSite: true,
       },
-      {
-        originalFilename: "test-image-3",
-        filename: "789",
-        description: "",
-      },
-    ],
-    tags: ["tag1", "tag2"],
-    displayOnSite: false
-  },
-  {
-    id: "234567",
-    name: "Mock Location 2",
-    streetAddress: "456 Main Street",
-    city: "Anytown",
-    state: "US",
-    zip: "12345",
-    coordinates: {
-      latitude: 0,
-      longitude: 0,
     },
-    description: "A second mock location",
-    images: [
-      {
-        originalFilename: "test-image-4",
-        filename: "234",
-        description: "",
-      },
-      {
-        originalFilename: "test-image-5",
-        filename: "567",
-        description: "",
-      },
-      {
-        originalFilename: "test-image-6",
-        filename: "890",
-        description: "",
-      },
-    ],
-    tags: [],
-    displayOnSite: false
-  },
-];
+  ],
+};
 
 vi.mock("../../src/daos/location_dao", () => ({
   findAll: vi.fn(() => {
@@ -79,10 +111,10 @@ vi.mock("../../src/daos/location_dao", () => ({
   }),
 
   findById: vi.fn((locationId) => {
-    let mockObject: Location;
+    let mockObject: LocationFeature;
 
     if (locationId === "123456") {
-      mockObject = mockLocations[0];
+      mockObject = mockLocations.features[0];
 
       return mockObject;
     } else if (locationId === "3456") {
@@ -90,37 +122,29 @@ vi.mock("../../src/daos/location_dao", () => ({
     }
   }),
 
-  findNearbyByGeoRadius: vi.fn((data) => {
-    if (data === 30) {
-      // TODO - figure out why the full data object isn't coming through here
-      // success case
-      return [mockLocations[0]];
-    } else {
-      // error condition
-      throw new Error("error");
-    }
-  }),
-
   findNearby: vi.fn((data) => {
     if (data.latitude === 30) {
       // success case
-      return [mockLocations[0]];
+      return {
+        type: "FeatureCollection",
+        features: [mockLocations.features[0]],
+      };
     } else {
       // error condition
       throw new Error("error");
     }
   }),
 
-  insert: vi.fn((location: Location) => {
-    if (location.city === "Anytown") {
+  insert: vi.fn((location: LocationFeature) => {
+    if (location.properties.city === "Anytown") {
       return "hashkey";
-    } else if (location.city === "Boogerville") {
+    } else if (location.properties.city === "Boogerville") {
       throw new Error("error");
     }
   }),
 
-  update: vi.fn((location: Location) => {
-    if (location.city === "New Jack City") {
+  update: vi.fn((location: LocationFeature) => {
+    if (location.properties.city === "New Jack City") {
       return "hashkey";
     } else {
       throw new Error("error");
@@ -135,15 +159,16 @@ vi.mock("../../src/daos/location_dao", () => ({
     } else {
       throw new Error("error");
     }
-  })
+  }),
 }));
 
 describe("LocationsService", () => {
   describe("getLocation", () => {
     it("should return a Location object on success", async () => {
       const data = await ls.getLocation("123456");
-      const location = data.result;
-      expect(location).toEqual(mockLocations[0]);
+      const actual = data.result;
+      const expected: LocationFeature = mockLocations.features[0];
+      expect(actual).toEqual(expected);
     });
 
     it("should throw an error", async () => {
@@ -156,9 +181,9 @@ describe("LocationsService", () => {
   describe("getAllLocations", () => {
     it("should return an array of Location objects on success", async () => {
       const data = await ls.getAllLocations();
-      const locations = data.result as Location[];
-      expect(locations!.length).toBe(2);
-      expect(locations).toEqual(mockLocations);
+      const actual = data.result as LocationFeatureCollection;
+      const expected = mockLocations;
+      expect(actual).toEqual(expected);
     });
   });
 
@@ -173,10 +198,12 @@ describe("LocationsService", () => {
       };
 
       const data = await ls.getNearbyLocations(nearbyLocationsParams);
-      const locations = data.result as Location[];
-
-      expect(locations.length).toBe(1);
-      expect(locations[0]).toEqual(mockLocations[0]);
+      const actual = data.result as LocationFeatureCollection;
+      const expected: LocationFeatureCollection = {
+        type: "FeatureCollection",
+        features: [mockLocations.features[0]],
+      };
+      expect(actual).toEqual(expected);
     });
 
     it("should throw an error", async () => {
@@ -195,45 +222,73 @@ describe("LocationsService", () => {
 
   describe("addLocation", () => {
     it("should get the location key after saving to the database", async () => {
-      const location: Location = {
+      const location: LocationFeature = {
         id: "123456",
-        name: "Mock Location 1",
-        streetAddress: "123 Any Street",
-        city: "Anytown",
-        state: "US",
-        zip: "12345",
-        coordinates: {
-          latitude: 0,
-          longitude: 0
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0],
         },
-        description: "A mock location",
-        images: [],
-        tags: ["tag1", "tag2"],
-        displayOnSite: false
+        properties: {
+          name: "Mock Location 1",
+          address: "123 Any Street",
+          city: "Anytown",
+          state: {
+            name: "State",
+            abbreviation: "ST",
+          },
+          postalCode: "12345",
+          country: {
+            name: "United States",
+            countryCode: "US",
+          },
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+          description: "A mock location",
+          images: [],
+          tags: ["tag1", "tag2"],
+          displayOnSite: false,
+        },
       };
 
       const data = await ls.addLocation(location);
       const locationHashKey = data.result;
-      
+
       expect(locationHashKey).toEqual("hashkey");
     });
 
     it("should throw an error saying it can't save location data", async () => {
-      const location = {
+      const location: LocationFeature = {
         id: "123457",
-        name: "Mock Location 2",
-        streetAddress: "123 Any Street",
-        city: "Boogerville",
-        state: "US",
-        zip: "12345",
-        coordinates: {
-          latitude: 0,
-          longitude: 0
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0],
         },
-        description: "A mock location",
-        images: [],
-        tags: ["tag1", "tag2"],
-        displayOnSite: false
+        properties: {
+          name: "Mock Location 2",
+          address: "123 Any Street",
+          city: "Boogerville",
+          state: {
+            name: "State",
+            abbreviation: "ST",
+          },
+          postalCode: "12345",
+          country: {
+            name: "United States",
+            countryCode: "US",
+          },
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+          description: "A mock location",
+          images: [],
+          tags: ["tag1", "tag2"],
+          displayOnSite: false,
+        },
       };
 
       await expect(ls.addLocation(location)).rejects.toThrowError(
@@ -244,51 +299,79 @@ describe("LocationsService", () => {
 
   describe("updateLocation", () => {
     it("should get the location key after saving to the database", async () => {
-      const location: Location = {
+      const location: LocationFeature = {
         id: "123456",
-        name: "Mock Location 1",
-        streetAddress: "123 Any Street",
-        city: "New Jack City",
-        state: "US",
-        zip: "12345",
-        coordinates: {
-          latitude: 0,
-          longitude: 0
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0],
         },
-        description: "A mock location",
-        images: [
-          {
-            originalFilename: "filename.jpg",
-            filename: "123456",
-            description: "A description"
-          }
-        ],
-        tags: ["tag1", "tag2"],
-        displayOnSite: false
+        properties: {
+          name: "Mock Location 1",
+          address: "123 Any Street",
+          city: "New Jack City",
+          state: {
+            name: "State",
+            abbreviation: "ST",
+          },
+          postalCode: "12345",
+          country: {
+            name: "United States",
+            countryCode: "US",
+          },
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+          description: "A mock location",
+          images: [
+            {
+              originalFilename: "filename.jpg",
+              filename: "123456",
+              description: "A description",
+            },
+          ],
+          tags: ["tag1", "tag2"],
+          displayOnSite: false,
+        },
       };
 
       const data = await ls.updateLocation(location);
       const locationHashKey = data.result;
-      
+
       expect(locationHashKey).toEqual("hashkey");
     });
 
     it("should throw an error saying it can't save location data", async () => {
-      const location = {
+      const location: LocationFeature = {
         id: "123457",
-        name: "Mock Location 2",
-        streetAddress: "123 Any Street",
-        city: "Boogerville",
-        state: "US",
-        zip: "12345",
-        coordinates: {
-          latitude: 0,
-          longitude: 0
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0],
         },
-        description: "A mock location",
-        images: [],
-        tags: ["tag1", "tag2"],
-        displayOnSite: false
+        properties: {
+          name: "Mock Location 2",
+          address: "123 Any Street",
+          city: "Boogerville",
+          state: {
+            name: "State",
+            abbreviation: "ST",
+          },
+          postalCode: "12345",
+          country: {
+            name: "United States",
+            countryCode: "US",
+          },
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+          description: "A mock location",
+          images: [],
+          tags: ["tag1", "tag2"],
+          displayOnSite: false,
+        },
       };
 
       await expect(ls.updateLocation(location)).rejects.toThrowError(

@@ -1,12 +1,19 @@
 import { Request } from "express";
 import { nanoid } from "nanoid";
+import {
+  LocationFeature,
+  LocationFeatureCollection,
+  LocationImage,
+} from "@notthesamadamsguy/location-finder-types";
 
 import * as locationsService from "../services/locations_service.ts";
 import * as geolocationService from "../services/geolocation_service.ts";
-import { Coordinates, Image, ControllerReply, Location } from "../types.ts";
+import { Coordinates, ControllerReply } from "../types.ts";
+import { MAPBOX_CONSTANTS } from "../utils/map_utils.ts";
+import { COUNTRY_CODES, US_STATES } from "../lib/constants.ts";
 
 export type LocationControllerReply = ControllerReply & {
-  result?: Location | Location[] | string | null;
+  result?: LocationFeature | LocationFeatureCollection | string | null;
 };
 
 /**
@@ -36,24 +43,37 @@ export const getLocation = async (
  * @param {Express.Request} req
  * @returns {Promise<LocationControllerReply>}
  */
-export const getNearbyLocations = async (
-  req: Request
-): Promise<LocationControllerReply> => {
+export const getNearbyLocations = async (req: Request) => {
   const latitude = parseFloat(req.query.latitude as string);
   const longitude = parseFloat(req.query.longitude as string);
-  const radius = parseFloat(req.query.radius as string);
-  const unitOfDistance: any = req.query.unitOfDistance;
-  const sort: any = req.query.sort;
+  const unitOfDistance = req.query.unitOfDistance as string;
+  const zoomlevel = parseInt(req.query.zoomlevel as string, 10);
+  const mapDimensionsInPx: DimensionsType = {
+    width: parseInt(req.query.mapWidthInPx as string, 10),
+    height: parseInt(req.query.mapHeightInPx as string, 10),
+    unitOfMeasure: "px",
+  };
 
-  const data = await locationsService.getNearbyLocations({
-    latitude,
-    longitude,
-    radius,
-    unitOfDistance,
-    sort,
+  const actualUnitsOfDistance = convertMapDimensionsToActualUnitsOfDistance({
+    zoomlevel: zoomlevel,
+    mapDimensions: mapDimensionsInPx,
+    latitude: latitude,
+    unitOfDistance: unitOfDistance as "km" | "mi",
   });
 
-  return { result: data.result } as LocationControllerReply;
+  // get information for nearby locations
+  const data = await locationsService.getNearbyLocations({
+    latitude: latitude,
+    longitude: longitude,
+    height: actualUnitsOfDistance.height,
+    width: actualUnitsOfDistance.width,
+    unitOfDistance: unitOfDistance as "km" | "mi",
+    sort: "ASC",
+  });
+
+  const featuresCollection = data.result;
+
+  return { result: featuresCollection };
 };
 
 /**
@@ -64,7 +84,7 @@ export const getNearbyLocations = async (
 export const addLocation = async (
   req: Request
 ): Promise<LocationControllerReply> => {
-  const location = await createLocationFromRequest(req);
+  const location = await createLocationFeatureFromRequest(req);
   const locationServiceReply = await locationsService.addLocation(location);
 
   return { result: locationServiceReply.result } as LocationControllerReply;
@@ -78,7 +98,7 @@ export const addLocation = async (
 export const updateLocation = async (
   req: Request
 ): Promise<LocationControllerReply> => {
-  const location = await createLocationFromRequest(req);
+  const location = await createLocationFeatureFromRequest(req);
   const locationServiceReply = await locationsService.updateLocation(location);
 
   return { result: locationServiceReply.result } as LocationControllerReply;
@@ -107,7 +127,9 @@ export const removeLocation = async (
  * @param {Express.Request} req
  * @returns {Promise<Location>} a Promise resolving to a Location object
  */
-const createLocationFromRequest = async (req: Request): Promise<Location> => {
+const createLocationFeatureFromRequest = async (
+  req: Request
+): Promise<LocationFeature> => {
   let tags: string[] = [];
 
   if (req.body.tag) {
@@ -118,36 +140,57 @@ const createLocationFromRequest = async (req: Request): Promise<Location> => {
     }
   }
 
-  const images: Image[] = createImagesFromRequest(req);
+  const images: LocationImage[] = createImagesFromRequest(req);
 
   const coordinates: Coordinates = await getCoordinatesFromAddress(
-    req.body.streetAddress,
+    req.body.address,
     req.body.city,
-    req.body.state,
-    req.body.zip
+    req.body.stateAbbreviation,
+    req.body.postalCode,
+    req.body.countryCode
   );
 
   return {
     id: req.body.id || nanoid(),
-    name: req.body.name,
-    streetAddress: req.body.streetAddress,
-    city: req.body.city,
-    state: req.body.state,
-    zip: req.body.zip,
-    description: req.body.description || "",
-    images: images,
-    coordinates: coordinates,
-    tags: tags,
-    displayOnSite: req.body.displayOnSite === "true" ? true : false,
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [coordinates.longitude, coordinates.latitude],
+    },
+    properties: {
+      name: req.body.name,
+      address: req.body.address,
+      city: req.body.city,
+      state: {
+        name:
+          US_STATES.find(
+            (state) => state.abbreviation === req.body.stateAbbreviation
+          )?.name || "",
+        abbreviation: req.body.stateAbbreviation,
+      },
+      postalCode: req.body.postalCode,
+      country: {
+        name:
+          COUNTRY_CODES.find(
+            (country) => country.countryCode === req.body.countryCode
+          )?.name || "",
+        countryCode: req.body.countryCode,
+      },
+      description: req.body.description || "",
+      images: images,
+      coordinates: coordinates,
+      tags: tags,
+      displayOnSite: req.body.displayOnSite === "true" ? true : false,
+    },
   };
 };
 
 /**
- * Create Image objects from the data in a Request.
+ * Create LocationImage objects from the data in a Request.
  * @param {Express.Request} req
- * @returns {Image[]} an array of Image objects
+ * @returns {LocationImage[]} an array of Image objects
  */
-const createImagesFromRequest = (req: Request): Image[] => {
+const createImagesFromRequest = (req: Request): LocationImage[] => {
   const files = req.files as Express.Multer.File[] | Express.MulterS3.File[];
   const multerStorageType = process.env.MULTER_STORAGE_TYPE;
 
@@ -183,7 +226,7 @@ const createImagesFromRequest = (req: Request): Image[] => {
     }
   });
 
-  let images: Image[] = [];
+  let images: LocationImage[] = [];
 
   if (filenames) {
     images = filenames.map((filename, index) => {
@@ -203,25 +246,73 @@ const createImagesFromRequest = (req: Request): Image[] => {
  *
  * @param {string} streetAddress
  * @param {string} city
- * @param {string} state
- * @param {string} zip
+ * @param {string} stateAbbreviation
+ * @param {string} postalCode
+ * @param {string} countryCode
  * @returns {Promise<Coordinates>} a Promise resolving to a Coordinates object
  */
 const getCoordinatesFromAddress = async (
   streetAddress: string,
   city: string,
-  state: string,
-  zip: string
+  stateAbbreviation: string,
+  postalCode: string,
+  countryCode: string
 ): Promise<Coordinates> => {
   try {
     const geoServiceReply = await geolocationService.getCoordinates({
       streetAddress: streetAddress,
       city: city,
-      state: state,
-      zip: zip,
+      state: stateAbbreviation,
+      zip: postalCode,
     });
     return geoServiceReply.result;
   } catch (err: any) {
     throw new Error("Unable to fetch coordinates data", err);
   }
+};
+
+type DimensionsType = {
+  height: number;
+  width: number;
+  unitOfMeasure: "px" | "mi" | "km";
+};
+
+type MapDimensionsConversionProps = {
+  zoomlevel: number;
+  mapDimensions: DimensionsType;
+  latitude: number;
+  unitOfDistance: "mi" | "km";
+};
+
+/**
+ * Convert a map's dimensions in pixels to the actual distances of the
+ * area represented by the map.
+ * @param props
+ * @returns {DimensionsType} an object containing the actual distances represented by the map
+ *
+ * Note: we need to do this conversion because Redis calculates nearby locations based on
+ * height and width distances of a bounding box, not the bounding coordinates as used by Mapbox.
+ */
+const convertMapDimensionsToActualUnitsOfDistance = (
+  props: MapDimensionsConversionProps
+) => {
+  const { zoomlevel, mapDimensions, latitude, unitOfDistance } = props;
+  const horizontalTileDistance =
+    MAPBOX_CONSTANTS.calculateHorizontalTileDistance(
+      zoomlevel,
+      latitude,
+      unitOfDistance
+    );
+  const unitOfDistancePerPixel =
+    horizontalTileDistance / MAPBOX_CONSTANTS.TILE_WIDTH_IN_PX;
+  const actualWidth = mapDimensions.width * unitOfDistancePerPixel;
+  const actualHeight = mapDimensions.height * unitOfDistancePerPixel;
+
+  const actualDimensions: DimensionsType = {
+    height: actualHeight,
+    width: actualWidth,
+    unitOfMeasure: unitOfDistance,
+  };
+
+  return actualDimensions;
 };

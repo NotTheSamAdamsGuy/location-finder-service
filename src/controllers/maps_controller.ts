@@ -35,11 +35,8 @@ export const getNearbyLocations = async (req: Request) => {
     unitOfDistance: unitOfDistance as "km" | "mi",
     sort: "ASC",
   });
-  const nearbyLocations = data.result || [];
+  
+  const collection = data.result;
 
-  // convert Location data to MapLocation data
-  const nearbyMapLocations =
-    MAPBOX_CONSTANTS.convertLocationsToMapLocations(nearbyLocations);
-
-  return { result: nearbyMapLocations };
+  return { result: collection };
 };
