@@ -1,6 +1,11 @@
+import {
+  LocationFeature,
+  LocationFeatureCollection,
+  LocationImage,
+} from "@notthesamadamsguy/location-finder-types";
+
 import * as keyGenerator from "./redis_key_generator.ts";
 import * as redis from "./redis_client.ts";
-import { Image, Location } from "../../../types.ts";
 import { logger } from "../../../logging/logger.ts";
 import { DatabaseError } from "../../../utils/errors.ts";
 import { FindNearbyParams } from "../../location_dao.ts";
@@ -15,12 +20,12 @@ const locationGeoKey = keyGenerator.getLocationGeoKey();
  */
 const convertImagePropertiesToImageArray = (
   data: Record<string, string>
-): Image[] => {
+): LocationImage[] => {
   interface DynamicData {
     [key: string]: string;
   }
 
-  const images: Image[] = [];
+  const images: LocationImage[] = [];
 
   const groupedById = Object.entries(data as Record<string, string>)
     .filter((entry) => {
@@ -45,7 +50,7 @@ const convertImagePropertiesToImageArray = (
     }, {});
 
   Object.values(groupedById).map((value) => {
-    const image: Image = {
+    const image: LocationImage = {
       originalFilename: value[0].value,
       filename: value[1].value,
       description: value[2].value,
@@ -66,10 +71,10 @@ const convertTagMembersToArray = (data: Record<string, string>): string[] => {
 /**
  * Remap a Redis hash to a Location object.
  * @param {Record<string, any>} data - a Redis hash
- * @returns {Location} - a Location object
+ * @returns {LocationFeature} - a Location object
  * @private
  */
-const remap = (data: Record<string, any>): Location => {
+const remap = (data: Record<string, any>): LocationFeature => {
   const imageNames: string[] = [];
 
   for (const [key, value] of Object.entries(data)) {
@@ -80,56 +85,75 @@ const remap = (data: Record<string, any>): Location => {
 
   const images = convertImagePropertiesToImageArray(data);
   const tags = convertTagMembersToArray(data);
+  const lng = parseFloat(data.longitude);
+  const lat = parseFloat(data.latitude);
 
   return {
     id: data.id,
-    name: data.name,
-    streetAddress: data.streetAddress,
-    city: data.city,
-    state: data.state,
-    zip: data.zip,
-    coordinates: {
-      latitude: parseFloat(data.latitude),
-      longitude: parseFloat(data.longitude),
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [lng, lat],
     },
-    description: data.description,
-    images: images,
-    tags: tags,
-    displayOnSite: data.displayOnSite === "true" ? true : false,
+    properties: {
+      name: data.name,
+      address: data.address,
+      city: data.city,
+      state: {
+        name: data.state,
+        abbreviation: data.stateAbbreviation,
+      },
+      postalCode: data.postalCode,
+      country: {
+        name: data.country,
+        countryCode: data.countryCode,
+      },
+      coordinates: {
+        latitude: lat,
+        longitude: lng,
+      },
+      description: data.description,
+      images: images,
+      tags: tags,
+      displayOnSite: data.displayOnSite === "true" ? true : false,
+    },
   };
 };
 
 /**
- * Takes a location domain object and flattens its structure out into
+ * Takes a LocationFeature object and flattens its structure out into
  * a set of key/value pairs suitable for storage in a Redis hash.
  *
- * @param {Location} location - a Location domain object.
+ * @param {LocationFeature} location - a LocationFeature object.
  * @returns {Record<string, any>} - a flattened version of 'location', with no nested
  *  inner objects, suitable for storage in a Redis hash.
  * @private
  */
-const flatten = (location: Location): Record<string, any> => {
+const flatten = (location: LocationFeature): Record<string, any> => {
   const flattenedLocation: Record<string, any> = {
     id: `${location.id}`,
-    name: location.name,
-    streetAddress: location.streetAddress,
-    city: location.city,
-    state: location.state,
-    zip: location.zip,
-    latitude: `${location.coordinates.latitude}`,
-    longitude: `${location.coordinates.longitude}`,
-    description: location.description,
-    displayOnSite: `${location.displayOnSite}`,
+    name: location.properties.name,
+    address: location.properties.address,
+    city: location.properties.city,
+    state: location.properties.state.name,
+    stateAbbreviation: location.properties.state.abbreviation,
+    postalCode: location.properties.postalCode,
+    country: location.properties.country.name,
+    countryCode: location.properties.country.countryCode,
+    latitude: `${location.properties.coordinates.latitude}`,
+    longitude: `${location.properties.coordinates.longitude}`,
+    description: location.properties.description,
+    displayOnSite: `${location.properties.displayOnSite}`,
   };
 
-  location.images?.forEach((image, index) => {
+  location.properties.images?.forEach((image, index) => {
     flattenedLocation[`image-originalFilename-${index}`] =
       image.originalFilename;
     flattenedLocation[`image-filename-${index}`] = image.filename;
     flattenedLocation[`image-description-${index}`] = image.description || "";
   });
 
-  location.tags?.forEach((tag, index) => {
+  location.properties.tags?.forEach((tag, index) => {
     flattenedLocation[`tag-${index}`] = tag;
   });
 
@@ -139,11 +163,11 @@ const flatten = (location: Location): Record<string, any> => {
 /**
  * Insert a new location.
  *
- * @param {Location} location - a Location object.
+ * @param {LocationFeature} location - a LocationFeature object.
  * @returns {Promise} - a Promise, resolving to the string value
  *   for the key of the location Redis.
  */
-export const insert = async (location: Location): Promise<string> => {
+export const insert = async (location: LocationFeature): Promise<string> => {
   const client = await redis.getClient();
   const locationHashKey = keyGenerator.getLocationHashKey(location.id);
   const locationGeoKey = keyGenerator.getLocationGeoKey();
@@ -159,8 +183,8 @@ export const insert = async (location: Location): Promise<string> => {
     client.HSET(locationHashKey, { ...flatten(location) }),
     client.SADD(keyGenerator.getLocationIDsKey(), locationHashKey),
     client.GEOADD(locationGeoKey, {
-      longitude: location.coordinates.longitude,
-      latitude: location.coordinates.latitude,
+      longitude: location.properties.coordinates.longitude,
+      latitude: location.properties.coordinates.latitude,
       member: location.id,
     }),
   ]);
@@ -175,19 +199,23 @@ export const insert = async (location: Location): Promise<string> => {
 /**
  * Update an existing location.
  *
- * @param {Location} location - a Location object.
+ * @param {LocationFeature} location - a LocationFeature object.
  * @returns {Promise} - a Promise, resolving to the string value
  *   for the ID of the location in the database.
  */
-export const update = async (location: Location): Promise<string> => {
+export const update = async (location: LocationFeature): Promise<string> => {
   const client = await redis.getClient();
   const locationHashKey = keyGenerator.getLocationHashKey(location.id);
   const locationGeoKey = keyGenerator.getLocationGeoKey();
 
   // determine which fields are not in the updated data so we can remove them using HDEL
-  const existingHashFields = Array.from(Object.keys(await client.HGETALL(locationHashKey)));
+  const existingHashFields = Array.from(
+    Object.keys(await client.HGETALL(locationHashKey))
+  );
   const newHashFields = Array.from(Object.keys(flatten(location)));
-  const fieldsToRemove = existingHashFields.filter((field) => newHashFields.indexOf(field) === -1);
+  const fieldsToRemove = existingHashFields.filter(
+    (field) => newHashFields.indexOf(field) === -1
+  );
 
   if (fieldsToRemove.length > 0) {
     await client.HDEL(locationHashKey, fieldsToRemove);
@@ -196,8 +224,8 @@ export const update = async (location: Location): Promise<string> => {
   await Promise.all([
     client.HSET(locationHashKey, { ...flatten(location) }),
     client.GEOADD(locationGeoKey, {
-      longitude: location.coordinates.longitude,
-      latitude: location.coordinates.latitude,
+      longitude: location.properties.coordinates.longitude,
+      latitude: location.properties.coordinates.latitude,
       member: location.id,
     }),
   ]);
@@ -225,7 +253,7 @@ export const remove = async (locationId: string): Promise<boolean> => {
     const results = await Promise.all([
       client.DEL(locationHashKey),
       client.ZREM(locationGeoKey, locationId),
-      client.SREM(locationIdsKey, locationHashKey)
+      client.SREM(locationIdsKey, locationHashKey),
     ]);
 
     const numDeleted = results[0];
@@ -246,12 +274,12 @@ export const remove = async (locationId: string): Promise<boolean> => {
 };
 
 /**
- * Get the location object for a given location ID.
+ * Get the LocationFeature object for a given location ID.
  *
  * @param {string} id - a location ID.
- * @returns {Promise} - a Promise, resolving to a location object.
+ * @returns {Promise<LocationFeature | null>} - a Promise, resolving to a LocationFeature object.
  */
-export const findById = async (id: string): Promise<Location | null> => {
+export const findById = async (id: string): Promise<LocationFeature | null> => {
   const client = await redis.getClient();
   const locationKey = keyGenerator.getLocationHashKey(id);
   const locationHash = await client.HGETALL(locationKey);
@@ -264,9 +292,9 @@ export const findById = async (id: string): Promise<Location | null> => {
 /**
  * Get all the location objects.
  *
- * @returns {Promise<Location[]>} - a Promise, resolving to an array of Location objects.
+ * @returns {Promise<LocationFeatureCollection>} - a Promise, resolving to a LocationFeatureCollection.
  */
-export const findAll = async (): Promise<Location[]> => {
+export const findAll = async (): Promise<LocationFeatureCollection> => {
   const client = await redis.getClient();
   const locationIdsKey = keyGenerator.getLocationIDsKey();
   const locationIds = await client.SMEMBERS(locationIdsKey);
@@ -279,57 +307,25 @@ export const findAll = async (): Promise<Location[]> => {
 
   const locationHashes = await pipeline.execAsPipeline();
 
-  const locations: Location[] = locationHashes.map((locationHash) => {
+  const locations: LocationFeature[] = locationHashes.map((locationHash) => {
     return remap(locationHash);
   });
 
   await client.close();
 
-  return locations;
-};
+  const collection: LocationFeatureCollection = {
+    type: "FeatureCollection",
+    features: locations,
+  };
 
-export const findNearbyByGeoRadius = async (
-  latitude: number,
-  longitude: number,
-  radius: number,
-  unitOfDistance: "m" | "km" | "ft" | "mi",
-  sort: "ASC" | "DESC" = "ASC"
-): Promise<Location[]> => {
-  const client = await redis.getClient();
-  const locationGeoKey = keyGenerator.getLocationGeoKey();
-
-  const locationIds = await client.GEORADIUS(
-    locationGeoKey,
-    { latitude: latitude, longitude: longitude },
-    radius,
-    unitOfDistance,
-    {
-      SORT: sort,
-    }
-  );
-
-  const pipeline = client.multi();
-
-  for (const locationId of locationIds) {
-    const locationHashKey = keyGenerator.getLocationHashKey(locationId);
-    pipeline.HGETALL(locationHashKey);
-  }
-
-  const locationHashes = await pipeline.execAsPipeline();
-
-  const locations: Location[] = locationHashes.map((locationHash) => {
-    return remap(locationHash);
-  });
-
-  await client.close();
-
-  return locations;
+  return collection;
 };
 
 export const findNearby = async (
   params: FindNearbyParams
-): Promise<Location[]> => {
-  const { latitude, longitude, radius, height, width, unitOfDistance, sort} = params;
+): Promise<LocationFeatureCollection> => {
+  const { latitude, longitude, radius, height, width, unitOfDistance, sort } =
+    params;
   const client = await redis.getClient();
   const locationGeoKey = keyGenerator.getLocationGeoKey();
   let locationIds: string[] = [];
@@ -337,19 +333,19 @@ export const findNearby = async (
   if (radius && height && width) {
     throw new Error("Please provide only radius or height and width.");
   } else if (radius) {
-    locationIds = await client.geoSearch(
+    locationIds = await client.GEOSEARCH(
       locationGeoKey,
       { longitude: longitude, latitude: latitude },
       { radius: radius, unit: unitOfDistance },
       { SORT: sort }
     );
   } else if (height && width) {
-    locationIds = await client.geoSearch(
+    locationIds = await client.GEOSEARCH(
       locationGeoKey,
       { longitude: longitude, latitude: latitude },
       { height: height, width: width, unit: unitOfDistance },
       { SORT: sort }
-    )
+    );
   }
 
   const pipeline = client.multi();
@@ -361,11 +357,16 @@ export const findNearby = async (
 
   const locationHashes = await pipeline.execAsPipeline();
 
-  const locations: Location[] = locationHashes.map((locationHash) => {
+  const locations: LocationFeature[] = locationHashes.map((locationHash) => {
     return remap(locationHash);
   });
 
   await client.close();
 
-  return locations;
+  const collection: LocationFeatureCollection = {
+    type: "FeatureCollection",
+    features: locations,
+  };
+
+  return collection;
 };

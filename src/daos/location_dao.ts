@@ -1,26 +1,27 @@
+import { LocationFeature, LocationFeatureCollection } from "@notthesamadamsguy/location-finder-types";
+
 import { loadDao } from "./daoloader.ts";
-import { Location } from "../types.ts";
 
 const impl = await loadDao("location");
 
 /**
  * Insert a new location.
  *
- * @param {Location} location - a Location object.
+ * @param {LocationFeature} location - a LocationFeature object.
  * @returns {Promise} - a Promise, resolving to the string value
- *   for the ID of the location in the database.
+ *   for the ID of the LocationFeature in the database.
  */
-export const insert = async (location: Location): Promise<string> =>
+export const insert = async (location: LocationFeature): Promise<string> =>
   impl.insert(location);
 
 /**
  * Update an existing location.
  *
- * @param {Location} location - a Location object.
+ * @param {LocationFeature} location - a LocationFeature object.
  * @returns {Promise} - a Promise, resolving to the string value
- *   for the ID of the location in the database.
+ *   for the ID of the LocationFeature in the database.
  */
-export const update = async (location: Location): Promise<string> =>
+export const update = async (location: LocationFeature): Promise<string> =>
   impl.update(location);
 
 /**
@@ -36,17 +37,17 @@ export const remove = async (id: string): Promise<boolean> => impl.remove(id);
  * Get the location object for a location site ID.
  *
  * @param {string} id - a location ID.
- * @returns {Promise<Location>} - a Promise, resolving to a location object.
+ * @returns {Promise<LocationFeature>} - a Promise, resolving to a LocationFeature object.
  */
-export const findById = async (id: string): Promise<Location> =>
+export const findById = async (id: string): Promise<LocationFeature> =>
   impl.findById(id);
 
 /**
  * Get all the location objects.
  *
- * @returns {Promise<Location[]>} - a Promise, resolving to an array of Location objects.
+ * @returns {Promise<LocationFeatureCollection>} - a Promise, resolving to a LocationFeatureCollection.
  */
-export const findAll = async (): Promise<Location[]> => impl.findAll();
+export const findAll = async (): Promise<LocationFeatureCollection> => impl.findAll();
 
 /**
  * Get all of the nearby locations.
@@ -54,19 +55,12 @@ export const findAll = async (): Promise<Location[]> => impl.findAll();
  * @param {number} latitude - the latitude of the search point
  * @param {number} longitude - the longitude of the search point
  * @param {number} radius - the radius around the search point
+ * @param {number} height - the height of the bounding box
+ * @param {number} width - the width of the bounding box
  * @param {string} unitOfDistance - the unit of distance ("mi" or "km")
  * @param {string} sort - the sort order ("ASC" or "DESC")
  * @returns a Promise resolving to an array of Location objects
  */
-export const findNearbyByGeoRadius = async (
-  latitude: number,
-  longitude: number,
-  radius: number,
-  unitOfDistance: "m" | "km" | "ft" | "mi",
-  sort?: "ASC" | "DESC"
-): Promise<Location[]> =>
-  impl.findNearbyByGeoRadius(latitude, longitude, radius, unitOfDistance, sort);
-
 export type FindNearbyParams = {
   latitude: number;
   longitude: number;
@@ -79,4 +73,4 @@ export type FindNearbyParams = {
 
 export const findNearby = async (
   params: FindNearbyParams
-): Promise<Location[]> => impl.findNearby(params);
+): Promise<LocationFeatureCollection> => impl.findNearby(params);

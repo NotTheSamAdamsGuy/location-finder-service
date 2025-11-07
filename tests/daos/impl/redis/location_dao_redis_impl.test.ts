@@ -1,73 +1,110 @@
 import { expect, describe, it, vi } from "vitest";
+import {
+  LocationFeature,
+  LocationFeatureCollection,
+} from "@notthesamadamsguy/location-finder-types";
 
 import * as locationDao from "../../../../src/daos/location_dao";
-import { Location, NearbyLocationsParams } from "../../../../src/types";
 
-const mockLocations: Location[] = [
-  {
-    id: "123456",
-    name: "Mock Location 1",
-    streetAddress: "123 Main Street",
-    city: "Anytown",
-    state: "US",
-    zip: "12345",
-    coordinates: {
-      latitude: 0,
-      longitude: 0,
+const mockLocations: LocationFeatureCollection = {
+  type: "FeatureCollection",
+  features: [
+    {
+      id: "123456",
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
+      properties: {
+        name: "Mock Location 1",
+        address: "123 Main Street",
+        city: "Anytown",
+        state: {
+          name: "State",
+          abbreviation: "ST",
+        },
+        postalCode: "12345",
+        country: {
+          name: "United States",
+          countryCode: "US",
+        },
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "A nice place.",
+        images: [
+          {
+            originalFilename: "test-image-1",
+            filename: "123",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-2",
+            filename: "456",
+            description: "",
+          },
+        ],
+        tags: ["tag1", "tag2"],
+        displayOnSite: true,
+      },
     },
-    description: "A nice place.",
-    images: [
-      {
-        originalFilename: "test-image-1",
-        filename: "123",
-        description: "",
+    {
+      id: "234567",
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [0, 0],
       },
-      {
-        originalFilename: "test-image-2",
-        filename: "456",
-        description: "",
+      properties: {
+        name: "Mock Location 2",
+        address: "456 Main Street",
+        city: "Anytown",
+        state: {
+          name: "State",
+          abbreviation: "ST",
+        },
+        postalCode: "12345",
+        country: {
+          name: "United States",
+          countryCode: "US",
+        },
+        coordinates: {
+          latitude: 0,
+          longitude: 0,
+        },
+        description: "A nicer place.",
+        images: [
+          {
+            originalFilename: "test-image-4",
+            filename: "234",
+            description: "",
+          },
+          {
+            originalFilename: "test-image-5",
+            filename: "567",
+            description: "",
+          },
+        ],
+        tags: [],
+        displayOnSite: true,
       },
-    ],
-    tags: ["tag1", "tag2"],
-    displayOnSite: false
-  },
-  {
-    id: "234567",
-    name: "Mock Location 2",
-    streetAddress: "456 Main Street",
-    city: "Anytown",
-    state: "US",
-    zip: "12345",
-    coordinates: {
-      latitude: 0,
-      longitude: 0,
     },
-    description: "A nicer place.",
-    images: [
-      {
-        originalFilename: "test-image-4",
-        filename: "234",
-        description: "",
-      },
-      {
-        originalFilename: "test-image-5",
-        filename: "567",
-        description: "",
-      },
-    ],
-    tags: [],
-    displayOnSite: false
-  },
-];
+  ],
+};
 
 const mockLocationHashes: Array<Record<string, any>> = [
   {
     id: "123456",
     name: "Mock Location 1",
-    streetAddress: "123 Main Street",
+    address: "123 Main Street",
     city: "Anytown",
-    state: "US",
-    zip: "12345",
+    state: "State",
+    stateAbbreviation: "ST",
+    postalCode: "12345",
+    country: "United States",
+    countryCode: "US",
     latitude: 0,
     longitude: 0,
     description: "A nice place.",
@@ -79,14 +116,18 @@ const mockLocationHashes: Array<Record<string, any>> = [
     "image-description-1": "",
     "tag-0": "tag1",
     "tag-1": "tag2",
+    displayOnSite: "true",
   },
   {
     id: "234567",
     name: "Mock Location 2",
-    streetAddress: "456 Main Street",
+    address: "456 Main Street",
     city: "Anytown",
-    state: "US",
-    zip: "12345",
+    state: "State",
+    stateAbbreviation: "ST",
+    postalCode: "12345",
+    country: "United States",
+    countryCode: "US",
     latitude: 0,
     longitude: 0,
     description: "A nicer place.",
@@ -96,8 +137,11 @@ const mockLocationHashes: Array<Record<string, any>> = [
     "image-originalFileName-1": "test-image-5",
     "image-filename-1": "567",
     "image-description-1": "",
+    displayOnSite: "true",
   },
 ];
+
+const mockLocationIds = ["123456", "234567"];
 
 const mockClient = {
   HGET: (hashkey: string) => {
@@ -116,7 +160,7 @@ const mockClient = {
   },
   SMEMBERS: (locationsIdKey: string) => {
     if (locationsIdKey === "test:locations:ids") {
-      return Promise.resolve(mockLocations);
+      return Promise.resolve(mockLocationIds);
     }
   },
   multi: () => {
@@ -129,15 +173,8 @@ const mockClient = {
       },
     };
   },
-  GEORADIUS: () => {
-    return Promise.resolve(mockLocations);
-  },
-  GEOSEARCH: (params: locationDao.FindNearbyParams) => {
-    if (params.radius && !params.height && !params.width) {
-      return Promise.resolve(mockLocations);
-    } else if (!params.radius && params.height && params.width) {
-      return Promise.resolve(mockLocations);
-    }
+  GEOSEARCH: () => {
+    return Promise.resolve(mockLocationIds);
   },
   HSET: () => {
     return Promise.resolve(1);
@@ -163,7 +200,7 @@ const mockClient = {
   },
   ZREM: () => {
     return 0;
-  }
+  },
 };
 
 vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
@@ -173,8 +210,9 @@ vi.mock("../../../../src/daos/impl/redis/redis_client", () => ({
 describe("LocationDao - Redis", () => {
   describe("findById", () => {
     it("should return a Location when given a valid ID", async () => {
-      const location = await locationDao.findById("123456");
-      expect(location).toEqual(mockLocations[0]);
+      const actual = await locationDao.findById("123456");
+      const expected = mockLocations.features[0];
+      expect(actual).toEqual(expected);
     });
 
     it("should return a null value when given an ID for a nonexistent location", async () => {
@@ -185,52 +223,54 @@ describe("LocationDao - Redis", () => {
 
   describe("findAll", () => {
     it("should return an array of locations on success", async () => {
-      const locations = await locationDao.findAll();
-      expect(locations).toEqual(mockLocations);
-    });
-  });
-
-  describe("findNearbyByGeoRadius", () => {
-    it("should return an array of locations on success", async () => {
-      const locations = await locationDao.findNearbyByGeoRadius(
-        0,
-        0,
-        5,
-        "mi",
-        "ASC"
-      );
-      expect(locations).toEqual(mockLocations);
+      const actual = await locationDao.findAll();
+      const expected = mockLocations;
+      expect(actual).toEqual(expected);
     });
   });
 
   describe("insert", () => {
     it("should return a hash key after saving a new location", async () => {
-      const location: Location = {
+      const location: LocationFeature = {
         id: "789",
-        name: "Test Location 3",
-        streetAddress: "789 Main St.",
-        city: "Anytown",
-        state: "USA",
-        zip: "12345",
-        coordinates: {
-          latitude: 0,
-          longitude: 0,
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0],
         },
-        description: "The nicest place.",
-        images: [
-          {
-            originalFilename: "originalName",
-            filename: "3939",
-            description: "",
+        properties: {
+          name: "Test Location 3",
+          address: "789 Main St.",
+          city: "Anytown",
+          state: {
+            name: "State",
+            abbreviation: "ST",
           },
-        ],
-        displayOnSite: false
+          postalCode: "12345",
+          country: {
+            name: "United States",
+            countryCode: "US",
+          },
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+          description: "The nicest place.",
+          images: [
+            {
+              originalFilename: "originalName",
+              filename: "3939",
+              description: "",
+            },
+          ],
+          displayOnSite: true,
+        },
       };
       const locationHashKey = await locationDao.insert(location);
       expect(locationHashKey).toEqual("test:locations:info:789");
     });
     it("should throw an error if the location already exists", async () => {
-      const location = mockLocations[1];
+      const location = mockLocations.features[1];
 
       await expect(locationDao.insert(location)).rejects.toThrowError(
         "Entry already exists"
@@ -240,20 +280,34 @@ describe("LocationDao - Redis", () => {
 
   describe("update", () => {
     it("should return a hash key after saving a new location", async () => {
-      const location: Location = {
+      const location: LocationFeature = {
         id: "789",
-        name: "Test Location 3",
-        streetAddress: "789 Main St.",
-        city: "Anytown",
-        state: "USA",
-        zip: "12345",
-        coordinates: {
-          latitude: 0,
-          longitude: 0,
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0],
         },
-        description: "The nicest place.",
-        images: [],
-        displayOnSite: false
+        properties: {
+          name: "Test Location 3",
+          address: "789 Main St.",
+          city: "Anytown",
+          state: {
+            name: "State",
+            abbreviation: "ST",
+          },
+          postalCode: "12345",
+          country: {
+            name: "United States",
+            countryCode: "US",
+          },
+          coordinates: {
+            latitude: 0,
+            longitude: 0,
+          },
+          description: "The nicest place.",
+          images: [],
+          displayOnSite: false,
+        },
       };
       const locationHashKey = await locationDao.update(location);
       expect(locationHashKey).toEqual("test:locations:info:789");
@@ -274,50 +328,50 @@ describe("LocationDao - Redis", () => {
     });
   });
 
-  // describe("findNearby", () => {
-    // it("should return an array of locations on success - radius", async () => {
-    //   const params: locationDao.FindNearbyParams = {
-    //     latitude: 0,
-    //     longitude: 0,
-    //     radius: 5,
-    //     unitOfDistance: "km",
-    //     sort: 'ASC'
-    //   };
-      
-    //   const locations = await locationDao.findNearby(params);
-    
-    //   expect(locations).toEqual(mockLocations);
-    // });
+  describe("findNearby", () => {
+    it("should return an array of locations on success - radius", async () => {
+      const params: locationDao.FindNearbyParams = {
+        latitude: 0,
+        longitude: 0,
+        radius: 5,
+        unitOfDistance: "km",
+        sort: "ASC",
+      };
 
-    // it("should return an array of locations on success - box", async () => {
-    //   const params: locationDao.FindNearbyParams = {
-    //     latitude: 0,
-    //     longitude: 0,
-    //     height: 5,
-    //     width: 5,
-    //     unitOfDistance: "km",
-    //     sort: 'ASC'
-    //   };
-      
-    //   const locations = await locationDao.findNearby(params);
-    
-    //   expect(locations).toEqual(mockLocations);
-    // });
+      const locations = await locationDao.findNearby(params);
 
-    // it("should throw an error", async () => {
-    //   const params: locationDao.FindNearbyParams = {
-    //     latitude: 0,
-    //     longitude: 0,
-    //     radius: 5,
-    //     height: 5,
-    //     width: 5,
-    //     unitOfDistance: "km",
-    //     sort: 'ASC'
-    //   };
-      
-    //   await expect(locationDao.findNearby(params)).rejects.toThrowError(
-    //     "Please provide only radius or height and width."
-    //   );
-    // });
-  // });
+      expect(locations).toEqual(mockLocations);
+    });
+
+    it("should return an array of locations on success - box", async () => {
+      const params: locationDao.FindNearbyParams = {
+        latitude: 0,
+        longitude: 0,
+        height: 5,
+        width: 5,
+        unitOfDistance: "km",
+        sort: "ASC",
+      };
+
+      const locations = await locationDao.findNearby(params);
+
+      expect(locations).toEqual(mockLocations);
+    });
+
+    it("should throw an error", async () => {
+      const params: locationDao.FindNearbyParams = {
+        latitude: 0,
+        longitude: 0,
+        radius: 5,
+        height: 5,
+        width: 5,
+        unitOfDistance: "km",
+        sort: "ASC",
+      };
+
+      await expect(locationDao.findNearby(params)).rejects.toThrowError(
+        "Please provide only radius or height and width."
+      );
+    });
+  });
 });
