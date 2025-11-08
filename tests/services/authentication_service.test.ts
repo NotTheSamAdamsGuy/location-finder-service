@@ -1,8 +1,8 @@
 import { expect, vi, describe, it } from "vitest";
 import { jwtVerify } from "jose";
+import { User } from "@notthesamadamsguy/location-finder-types";
 
 import { generateToken } from "../../src/services/authentication_service";
-import { User } from "../../src/types";
 import { config } from "../../config";
 
 vi.mock("../../src/services/users_service", () => ({

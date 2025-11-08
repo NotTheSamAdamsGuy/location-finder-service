@@ -1,5 +1,6 @@
 import { expect, vi, describe, it } from "vitest";
-import { User, UserProfile } from "../../src/types";
+import { User, UserProfile } from "@notthesamadamsguy/location-finder-types";
+
 import * as service from "../../src/services/users_service";
 
 const mockUser: User = {
@@ -15,7 +16,7 @@ const mockUserProfile: UserProfile = {
   username: mockUser.username,
   firstName: mockUser.firstName as string,
   lastName: mockUser.lastName as string,
-  role: mockUser.role as string,
+  role: mockUser.role as "USER" | "ADMIN",
 };
 
 vi.mock("../../src/daos/users_dao", () => ({

@@ -1,5 +1,7 @@
+import { Coordinates } from "@notthesamadamsguy/location-finder-types";
+
 import * as geolocationDao from "../daos/geolocation_dao.ts";
-import { Address, Coordinates, ServiceReply } from "../types.ts";
+import { Address, ServiceReply } from "../types.ts";
 import { logger } from "../logging/logger.ts";
 
 type GeolocationInputs = {

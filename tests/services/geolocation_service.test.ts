@@ -1,7 +1,7 @@
 import { expect, vi, describe, it } from "vitest";
+import { Coordinates } from "@notthesamadamsguy/location-finder-types";
 
 import * as service from "../../src/services/geolocation_service.ts";
-import { Coordinates } from "../../src/types.ts";
 
 interface FeatureCollection {
   features: [

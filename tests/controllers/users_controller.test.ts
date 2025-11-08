@@ -1,8 +1,8 @@
 import { expect, vi, describe, it } from "vitest";
 import { getMockReq, getMockRes } from "vitest-mock-express";
+import { UserProfile } from "@notthesamadamsguy/location-finder-types";
 
 import * as uc from "../../src/controllers/users_controller";
-import { UserProfile } from "../../src/types";
 
 vi.mock("../../src/services/users_service", () => ({
   getUser: vi.fn((username) => {

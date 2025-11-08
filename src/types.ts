@@ -1,29 +1,4 @@
-export type Image = {
-  originalFilename: string;
-  filename: string;
-  description?: string;
-};
-
-export type Location = {
-  id: string;
-  name: string;
-  streetAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  coordinates: Coordinates;
-  description: string;
-  images: Image[];
-  tags?: string[];
-  displayOnSite: boolean;
-};
-
-export type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
-
-export type Address = {
+export type Address = { // used in geolocations controller, maybe service
   streetAddress: string;
   city: string;
   state: string;
@@ -46,25 +21,6 @@ export type NearbyLocationsParams = {
   width?: number;
   unitOfDistance: "m" | "km" | "ft" | "mi";
   sort: "ASC" | "DESC";
-};
-
-export type AddLocationParams = {
-  name: string;
-  streetAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  description: string;
-  files?: Express.Multer.File[] | Express.MulterS3.File[];
-  imageDescription?: string;
-  coordinates: Coordinates;
-  images: Image[];
-  tags?: string[];
-  displayOnSite?: boolean
-};
-
-export type UpdateLocationParams = AddLocationParams & {
-  id: string;
 };
 
 export type User = {
@@ -138,45 +94,6 @@ export type MapboxSuggestion = {
   maki?: string;
   poi_category?: string[];
   poi_category_ids?: string[];
-};
-
-type MapboxRoutablePoint = {
-  name: string;
-  latitude: number;
-  longitude: number;
-};
-
-export type MapboxFeature = {
-  type: string;
-  geometry: {
-    coordinates: number[],
-    type: string
-  };
-  properties: MapboxSuggestion & {
-    coordinates: {
-      latitude: number,
-      longitude: number,
-      accuracy?: string,
-      routable_points?: MapboxRoutablePoint[]
-    },
-  };
-};
-
-export type MapLocation = {
-  id: string;
-  name: string;
-  streetAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  images?: string[];
-  description?: string;
-  tags?: string[];
-  coordinates: {
-    longitude: number;
-    latitude: number;
-  },
-  type: string;
 };
 
 export type MapSearchReply = {

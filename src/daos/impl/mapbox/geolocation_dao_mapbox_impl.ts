@@ -1,4 +1,5 @@
-import { Coordinates } from "../../../types.ts";
+import { Coordinates } from "@notthesamadamsguy/location-finder-types";
+
 import { logger } from "../../../logging/logger.ts";
 import { config } from "../../../../config.ts";
 

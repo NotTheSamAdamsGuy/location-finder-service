@@ -1,6 +1,7 @@
+import { User } from "@notthesamadamsguy/location-finder-types";
+
 import * as redis from "./redis_client.ts";
 import * as keyGenerator from "./redis_key_generator.ts";
-import { User } from "../../../types.ts";
 import { logger } from "../../../logging/logger.ts";
 import { DatabaseError } from "../../../utils/errors.ts";
 

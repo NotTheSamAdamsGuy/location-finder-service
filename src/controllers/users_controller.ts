@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
+import { UserProfile } from "@notthesamadamsguy/location-finder-types";
 
 import * as userService from "../services/users_service.ts";
-import { ControllerReply, UserProfile } from "../types.ts";
+import { ControllerReply } from "../types.ts";
 
 type UserProfileControllerReply = ControllerReply & {
   result: UserProfile | null;

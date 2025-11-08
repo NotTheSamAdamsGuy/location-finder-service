@@ -1,5 +1,6 @@
+import { Coordinates } from "@notthesamadamsguy/location-finder-types";
+
 import { loadDao } from "./daoloader.ts";
-import { Coordinates } from "../types.ts";
 import { config } from "../../config.ts";
 
 const impl = await loadDao("geolocation", config.service.geolocationDataStore);

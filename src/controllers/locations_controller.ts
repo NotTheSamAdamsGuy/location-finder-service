@@ -1,16 +1,17 @@
 import { Request } from "express";
 import { nanoid } from "nanoid";
 import {
+  Coordinates,
   LocationFeature,
   LocationFeatureCollection,
-  LocationImage,
+  LocationImage
 } from "@notthesamadamsguy/location-finder-types";
 
 import * as locationsService from "../services/locations_service.ts";
 import * as geolocationService from "../services/geolocation_service.ts";
-import { Coordinates, ControllerReply } from "../types.ts";
+import { ControllerReply } from "../types.ts";
 import { MAPBOX_CONSTANTS } from "../utils/map_utils.ts";
-import { COUNTRY_CODES, US_STATES } from "../lib/constants.ts";
+import { US_STATES, COUNTRY_CODES } from "../lib/constants.ts";
 
 export type LocationControllerReply = ControllerReply & {
   result?: LocationFeature | LocationFeatureCollection | string | null;

@@ -1,5 +1,6 @@
+import { User } from "@notthesamadamsguy/location-finder-types";
+
 import { loadDao } from "./daoloader.ts";
-import { User } from "../types.ts";
 
 const impl = await loadDao("users");
 

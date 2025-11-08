@@ -1,6 +1,8 @@
+import { User, UserProfile } from "@notthesamadamsguy/location-finder-types";
+
 import * as usersDao from "../daos/users_dao.ts";
 import { logger } from "../logging/logger.ts";
-import { User, UserProfile, ServiceReply } from "../types.ts";
+import { ServiceReply } from "../types.ts";
 
 export type UserServiceReply = ServiceReply & {
   result: User | null;
@@ -57,7 +59,7 @@ export const getUserProfile = async (
         username: user.username,
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
-        role: user.role ?? "",
+        role: user.role,
       };
 
       return { success: true, result: profile };
