@@ -27,6 +27,8 @@ export const MAPBOX_CONSTANTS = {
       C = MAPBOX_CONSTANTS.EARTH_CIRCUMFERENCE.mi;
     }
 
-    return (C * Math.cos(latitude * (Math.PI / 180))) / 2 ** (zoomlevel - 1);
+    // Math.cos() uses radians, so we need to convert degrees to radians
+    const latitudeInRadians = latitude * (Math.PI / 180);
+    return (C * Math.cos(latitudeInRadians)) / 2 ** (zoomlevel);
   },
 };
