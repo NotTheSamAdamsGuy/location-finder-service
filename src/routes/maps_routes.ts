@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response, Router } from "express";
 import passport from "passport";
 import { v4 as uuidv4 } from "uuid";
+import { MapSearchReply, MapboxSuggestion } from "@notthesamadamsguy/location-finder-types";
 
 import { config } from "../../config.ts";
-import { MapSearchReply, MapboxSuggestion } from "../types.ts";
 import { sendSuccess } from "../middleware/responseHandler.ts";
 import { BadRequestError } from "../utils/errors.ts";
 import { logger } from "../logging/logger.ts";
