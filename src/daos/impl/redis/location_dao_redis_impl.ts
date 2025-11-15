@@ -135,13 +135,13 @@ const flatten = (location: LocationFeature): Record<string, any> => {
     name: location.properties.name,
     address: location.properties.address,
     city: location.properties.city,
-    state: location.properties.state.name,
-    stateAbbreviation: location.properties.state.abbreviation,
+    state: location.properties.state?.name,
+    stateAbbreviation: location.properties.state?.abbreviation,
     postalCode: location.properties.postalCode,
-    country: location.properties.country.name,
-    countryCode: location.properties.country.countryCode,
-    latitude: `${location.properties.coordinates.latitude}`,
-    longitude: `${location.properties.coordinates.longitude}`,
+    country: location.properties.country?.name,
+    countryCode: location.properties.country?.countryCode,
+    latitude: `${location.properties.coordinates?.latitude}`,
+    longitude: `${location.properties.coordinates?.longitude}`,
     description: location.properties.description,
     displayOnSite: `${location.properties.displayOnSite}`,
   };
@@ -183,8 +183,8 @@ export const insert = async (location: LocationFeature): Promise<string> => {
     client.HSET(locationHashKey, { ...flatten(location) }),
     client.SADD(keyGenerator.getLocationIDsKey(), locationHashKey),
     client.GEOADD(locationGeoKey, {
-      longitude: location.properties.coordinates.longitude,
-      latitude: location.properties.coordinates.latitude,
+      longitude: location.properties.coordinates!.longitude,
+      latitude: location.properties.coordinates!.latitude,
       member: location.id,
     }),
   ]);
@@ -224,8 +224,8 @@ export const update = async (location: LocationFeature): Promise<string> => {
   await Promise.all([
     client.HSET(locationHashKey, { ...flatten(location) }),
     client.GEOADD(locationGeoKey, {
-      longitude: location.properties.coordinates.longitude,
-      latitude: location.properties.coordinates.latitude,
+      longitude: location.properties.coordinates!.longitude,
+      latitude: location.properties.coordinates!.latitude,
       member: location.id,
     }),
   ]);
