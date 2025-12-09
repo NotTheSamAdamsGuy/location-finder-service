@@ -7,7 +7,9 @@ RUN npm ci --omit=dev
 COPY . ./
 
 # Build TypeScript (if needed)
-RUN npm i typescript && npm run build
+# RUN npm i typescript && npm run build
+RUN --mount=type=secret,id=npm_token \
+  npm i typescript  && npm run build
 
 # Production image
 FROM node:20-alpine AS prod
