@@ -28,3 +28,27 @@ export const generateToken = async (
 
   return { result: token };
 };
+
+export const generateTokens = async (req: Request, res: Response) => {
+  const { username } = req.body;
+
+  try {
+    const response = await authenticationService.generateTokens(
+      username
+    );
+    res.status(200).json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};
+
+export const refreshTokens = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  try {
+    const response = await authenticationService.refreshTokens(refreshToken);
+    res.status(200).json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+}

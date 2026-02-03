@@ -4,6 +4,7 @@ import * as redis from "./redis_client.ts";
 import * as keyGenerator from "./redis_key_generator.ts";
 import { logger } from "../../../logging/logger.ts";
 import { DatabaseError } from "../../../utils/errors.ts";
+import { RedisClientType } from "redis";
 
 /**
  * Convert a Redis hash into a User object
@@ -84,6 +85,32 @@ export const findByUsername = async (
   return Object.entries(userHash).length === 0 ? null : remap(userHash);
 };
 
+export const findByUsernameNew = async (
+  username: string
+): Promise<User | null> => {
+  const userHashKey = keyGenerator.getUserHashKey(username);
+  const client = await redis.getClient();
+  let user: User | null = null;
+  let success = false;
+  let error = "";
+
+  try {
+    const userHash = await client.HGETALL(userHashKey);
+    success = true;
+    if (Object.entries(userHash).length > 0) user = remap(userHash);
+  } catch (err) {
+    error = `Encountered error while searching for user: ${err}`;
+  } finally {
+    await client.close();
+  }
+
+  if (success) {
+    return user;
+  } else {
+    throw new DatabaseError(error);
+  }
+};
+
 /**
  * Insert a new user.
  *
@@ -157,7 +184,7 @@ export const remove = async (username: string): Promise<boolean> => {
     try {
       const results = await Promise.all([
         client.DEL(userHashKey),
-        client.SREM(userIdsKey, userHashKey)
+        client.SREM(userIdsKey, userHashKey),
       ]);
 
       const numDeleted = results[0];

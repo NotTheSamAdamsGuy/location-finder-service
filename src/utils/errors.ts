@@ -1,3 +1,12 @@
+class Error {
+  message: string;
+  name: string;
+  constructor(message: string) {
+    this.message = message;
+    this.name = "Error";
+  }
+}
+
 export class NotFoundError extends Error {
   statusCode: number;
   constructor(message: string) {

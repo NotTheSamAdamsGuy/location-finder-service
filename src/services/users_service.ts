@@ -2,7 +2,7 @@ import { User, UserProfile } from "@notthesamadamsguy/location-finder-types";
 
 import * as usersDao from "../daos/users_dao.ts";
 import { logger } from "../logging/logger.ts";
-import { ServiceReply } from "../types.ts";
+import { ServiceReply, ServiceResponse } from "../types.ts";
 
 export type UserServiceReply = ServiceReply & {
   result: User | null;
@@ -25,6 +25,15 @@ export const getUser = async (username: string): Promise<UserServiceReply> => {
     throw new Error("Unable to fetch user data.", err);
   }
 };
+
+export const getUserNew = async (username: string): Promise<ServiceResponse<User>> => {
+  try {
+    const user = await usersDao.findByUsername(username);
+    return { status: "success", data: user };
+  } catch (err: any) {
+    return { status: "error", error: err };
+  }
+}
 
 /**
  * Get all of the usernames from the database.

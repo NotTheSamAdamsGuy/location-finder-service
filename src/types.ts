@@ -1,4 +1,5 @@
-export type Address = { // used in geolocations controller, maybe service
+export type Address = {
+  // used in geolocations controller, maybe service
   streetAddress: string;
   city: string;
   state: string;
@@ -54,3 +55,27 @@ export type ControllerReply = {
   message?: string;
   result?: unknown;
 };
+
+export interface ServiceResponseError {
+  code: number;
+  message: string;
+}
+
+export interface ServiceResponse<T> {
+  status: "success" | "error";
+  data?: T;
+  message?: string;
+  error?: ServiceResponseError;
+}
+
+export interface ControllerResponse<T> {
+  status: "success" | "error";
+  data?: T;
+  message?: string;
+  error?: ServiceResponseError;
+}
+
+export interface Tokens {
+  accessToken: string;
+  refreshToken: string;
+}

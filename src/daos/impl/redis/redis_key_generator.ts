@@ -75,3 +75,12 @@ export const getUserIDsKey = () => getKey('users:ids');
  * @returns the Redis key name used to store tag information
  */
 export const getTagsKey = () => getKey('tags');
+
+/**
+ * Returns the Redis key used to store session information
+ * 
+ * Key name: prefix:session
+ * Redis type stored at this key: string
+ * @returns the Redis key name used to store session username
+ */
+export const getSessionKey = (tokenId: string) => getKey(`sessions:${tokenId}`);
