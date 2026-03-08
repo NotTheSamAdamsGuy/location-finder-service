@@ -4,7 +4,7 @@ import {
   Coordinates,
   LocationFeature,
   LocationFeatureCollection,
-  LocationImage
+  LocationImage,
 } from "@notthesamadamsguy/location-finder-types";
 
 import * as locationsService from "../services/locations_service.ts";
@@ -32,9 +32,11 @@ export const getAllLocations = async (): Promise<LocationControllerReply> => {
  * @returns {Promise<LocationControllerReply>}
  */
 export const getLocation = async (
-  req: Request
+  req: Request,
 ): Promise<LocationControllerReply> => {
-  const locationId = req.params.locationId;
+  const locationId = Array.isArray(req.params.locationId)
+    ? req.params.locationId[0]
+    : req.params.locationId;
   const data = await locationsService.getLocation(locationId);
   return { result: data.result } as LocationControllerReply;
 };
@@ -83,7 +85,7 @@ export const getNearbyLocations = async (req: Request) => {
  * @returns {Promise<LocationControllerReply>}
  */
 export const addLocation = async (
-  req: Request
+  req: Request,
 ): Promise<LocationControllerReply> => {
   const location = await createLocationFeatureFromRequest(req);
   const locationServiceReply = await locationsService.addLocation(location);
@@ -97,7 +99,7 @@ export const addLocation = async (
  * @returns {Promise<LocationControllerReply>}
  */
 export const updateLocation = async (
-  req: Request
+  req: Request,
 ): Promise<LocationControllerReply> => {
   const location = await createLocationFeatureFromRequest(req);
   const locationServiceReply = await locationsService.updateLocation(location);
@@ -111,12 +113,13 @@ export const updateLocation = async (
  * @returns {Promise<LocationControllerReply>}
  */
 export const removeLocation = async (
-  req: Request
+  req: Request,
 ): Promise<LocationControllerReply> => {
-  const locationId = req.params.locationId;
-  const locationServiceReply = await locationsService.removeLocation(
-    locationId
-  );
+  const locationId = Array.isArray(req.params.locationId)
+    ? req.params.locationId[0]
+    : req.params.locationId;
+  const locationServiceReply =
+    await locationsService.removeLocation(locationId);
   const message = locationServiceReply.success ? "success" : "failure";
 
   return { message: message, result: locationServiceReply.result };
@@ -129,7 +132,7 @@ export const removeLocation = async (
  * @returns {Promise<Location>} a Promise resolving to a Location object
  */
 const createLocationFeatureFromRequest = async (
-  req: Request
+  req: Request,
 ): Promise<LocationFeature> => {
   let tags: string[] = [];
 
@@ -148,7 +151,7 @@ const createLocationFeatureFromRequest = async (
     req.body.city,
     req.body.stateAbbreviation,
     req.body.postalCode,
-    req.body.countryCode
+    req.body.countryCode,
   );
 
   return {
@@ -165,7 +168,7 @@ const createLocationFeatureFromRequest = async (
       state: {
         name:
           US_STATES.find(
-            (state) => state.abbreviation === req.body.stateAbbreviation
+            (state) => state.abbreviation === req.body.stateAbbreviation,
           )?.name || "",
         abbreviation: req.body.stateAbbreviation,
       },
@@ -173,7 +176,7 @@ const createLocationFeatureFromRequest = async (
       country: {
         name:
           COUNTRY_CODES.find(
-            (country) => country.countryCode === req.body.countryCode
+            (country) => country.countryCode === req.body.countryCode,
           )?.name || "",
         countryCode: req.body.countryCode,
       },
@@ -198,8 +201,8 @@ const createImagesFromRequest = (req: Request): LocationImage[] => {
   const filenames: string[] = Array.isArray(req.body.filename)
     ? req.body.filename
     : req.body.filename
-    ? [req.body.filename]
-    : [];
+      ? [req.body.filename]
+      : [];
 
   const originalFilenames: string[] = Array.isArray(req.body.originalFilename)
     ? req.body.originalFilename
@@ -215,12 +218,12 @@ const createImagesFromRequest = (req: Request): LocationImage[] => {
     if (filename === originalFilenames[index]) {
       if (multerStorageType === "s3") {
         const matchingFile = files.find(
-          (file) => file.originalname === filename
+          (file) => file.originalname === filename,
         ) as Express.MulterS3.File;
         filenames[index] = matchingFile.key;
       } else {
         const matchingFile = files.find(
-          (file) => file.originalname === filename
+          (file) => file.originalname === filename,
         ) as Express.Multer.File;
         filenames[index] = matchingFile?.filename || "";
       }
@@ -257,7 +260,7 @@ const getCoordinatesFromAddress = async (
   city: string,
   stateAbbreviation: string,
   postalCode: string,
-  countryCode: string
+  countryCode: string,
 ): Promise<Coordinates> => {
   try {
     const geoServiceReply = await geolocationService.getCoordinates({
@@ -295,14 +298,14 @@ type MapDimensionsConversionProps = {
  * height and width distances of a bounding box, not the bounding coordinates as used by Mapbox.
  */
 const convertMapDimensionsToActualUnitsOfDistance = (
-  props: MapDimensionsConversionProps
+  props: MapDimensionsConversionProps,
 ) => {
   const { zoomlevel, mapDimensions, latitude, unitOfDistance } = props;
   const horizontalTileDistance =
     MAPBOX_CONSTANTS.calculateHorizontalTileDistance(
       zoomlevel,
       latitude,
-      unitOfDistance
+      unitOfDistance,
     );
   const unitOfDistancePerPixel =
     horizontalTileDistance / MAPBOX_CONSTANTS.TILE_WIDTH_IN_PX;

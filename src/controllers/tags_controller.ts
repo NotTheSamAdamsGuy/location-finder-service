@@ -27,10 +27,12 @@ export const getAllTags = async (): Promise<TagsControllerReply> => {
  */
 export const getTag = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<TagsControllerReply> => {
   try {
-    const tag = req.params.tag;
+    const tag = Array.isArray(req.params.tag)
+      ? req.params.tag[0]
+      : req.params.tag;
     const data = await TagsService.getTag(tag);
     return { result: data.result };
   } catch (err) {
@@ -47,7 +49,7 @@ export const getTag = async (
  */
 export const addTag = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<TagsControllerReply> => {
   const tag = req.body.tag;
 
@@ -68,7 +70,7 @@ export const addTag = async (
  */
 export const updateTag = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<TagsControllerReply> => {
   const currentTag = req.body.currentTag;
   const newTag = req.body.newTag;
@@ -90,9 +92,11 @@ export const updateTag = async (
  */
 export const removeTag = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<TagsControllerReply> => {
-  const tagToRemove = req.params.tag;
+  const tagToRemove = Array.isArray(req.params.tag)
+    ? req.params.tag[0]
+    : req.params.tag;
 
   try {
     await TagsService.removeTag(tagToRemove);

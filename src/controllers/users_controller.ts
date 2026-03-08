@@ -14,9 +14,12 @@ type UsernamesControllerReply = ControllerReply & {
 
 export const getUserProfile = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<UserProfileControllerReply> => {
-  const data = await userService.getUserProfile(req.params.username);
+  const username = Array.isArray(req.params.username)
+    ? req.params.username[0]
+    : req.params.username;
+  const data = await userService.getUserProfile(username);
   return { result: data.result };
 };
 
@@ -31,7 +34,7 @@ type CreateUserContollerReply = ControllerReply & {
 
 export const createUser = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<CreateUserContollerReply> => {
   const { username, password, firstName, lastName, role } = { ...req.body };
   const reply = await userService.createUser(
@@ -39,7 +42,7 @@ export const createUser = async (
     password,
     firstName,
     lastName,
-    role
+    role,
   );
   return { result: reply.result };
 };
@@ -49,7 +52,7 @@ type UpdateControllerReply = ControllerReply & {
   result?: string;
 };
 export const updateUser = async (
-  req: Request
+  req: Request,
 ): Promise<UpdateControllerReply> => {
   const username: string = req.body.username;
   const password: string = req.body.password;
@@ -69,7 +72,7 @@ export const updateUser = async (
     passwordToSubmit,
     firstName,
     lastName,
-    role
+    role,
   );
 
   if (reply.success) {
@@ -89,10 +92,14 @@ type RemoveControllerReply = ControllerReply & {
  * @param {Express.Request} req
  * @returns {Promise<RemoveControllerReply>}
  */
-export const removeUser = async (req: Request): Promise<RemoveControllerReply> => {
-  const username = req.params.username;
+export const removeUser = async (
+  req: Request,
+): Promise<RemoveControllerReply> => {
+  const username = Array.isArray(req.params.username)
+    ? req.params.username[0]
+    : req.params.username;
   const reply = await userService.removeUser(username);
-  
+
   if (reply.success) {
     return { success: reply.success };
   } else {
