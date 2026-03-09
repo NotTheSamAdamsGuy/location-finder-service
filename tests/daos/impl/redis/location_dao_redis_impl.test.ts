@@ -39,11 +39,13 @@ const mockLocations: LocationFeatureCollection = {
             originalFilename: "test-image-1",
             filename: "123",
             description: "",
+            url: `${process.env.IMAGE_SERVER_URL}/123`
           },
           {
             originalFilename: "test-image-2",
             filename: "456",
             description: "",
+            url: `${process.env.IMAGE_SERVER_URL}/456`
           },
         ],
         tags: ["tag1", "tag2"],
@@ -80,11 +82,13 @@ const mockLocations: LocationFeatureCollection = {
             originalFilename: "test-image-4",
             filename: "234",
             description: "",
+            url: `${process.env.IMAGE_SERVER_URL}/234`
           },
           {
             originalFilename: "test-image-5",
             filename: "567",
             description: "",
+            url: `${process.env.IMAGE_SERVER_URL}/567`
           },
         ],
         tags: [],
@@ -261,6 +265,7 @@ describe("LocationDao - Redis", () => {
               originalFilename: "originalName",
               filename: "3939",
               description: "",
+              url: `${process.env.IMAGE_SERVER_URL}/3939`
             },
           ],
           displayOnSite: true,

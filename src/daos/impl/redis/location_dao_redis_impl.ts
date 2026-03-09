@@ -50,10 +50,12 @@ const convertImagePropertiesToImageArray = (
     }, {});
 
   Object.values(groupedById).map((value) => {
+    const filename = value.find((item) => item.key === "filename")?.value ?? "filename";
     const image: LocationImage = {
       originalFilename: value.find((item) => item.key === "originalFilename")?.value ?? "originalFilename",
-      filename: value.find((item) => item.key === "filename")?.value ?? "filename",
+      filename: filename,
       description: value.find((item) => item.key === "description")?.value,
+      url: `${process.env.IMAGE_SERVER_URL}/${filename}`
     };
 
     images.push(image);
