@@ -19,7 +19,6 @@ router.get(
     res.set("Content-Type", "application/json");
     return next();
   },
-  passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
       const sessionToken = uuidv4();
@@ -57,7 +56,6 @@ router.get(
     res.set("Content-Type", "application/json");
     return next();
   },
-  passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
       const mapboxLocationId = req.params["mapboxLocationId"];

@@ -17,7 +17,7 @@ router.get(
     res.set("Content-Type", "application/json");
     return next();
   },
-  passport.authenticate("bearer", { session: false }),
+  
   async (req, res, next) => {
     try {
       const data = await locationsController.getAllLocations();
@@ -37,7 +37,6 @@ router.get(
 // GET /locations/nearby
 router.get(
   "/nearby",
-  passport.authenticate("bearer", { session: false }),
   query("latitude").notEmpty(),
   query("longitude").notEmpty(),
   query("unitOfDistance")
@@ -68,7 +67,6 @@ router.get(
 // GET /locations/abc123
 router.get(
   "/:locationId",
-  passport.authenticate("bearer", { session: false }),
   async (req, res, next) => {
     try {
       const data = await locationsController.getLocation(req);
